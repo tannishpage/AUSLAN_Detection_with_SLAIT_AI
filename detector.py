@@ -157,18 +157,15 @@ def compare_entropies(strings, sample_size,
     plt.legend(legend)
     plt.show()
 
-
-def singular_string(string, sample_size):
-    ap = 0.0095
-    bp = 4.0976
-    cp = 3.9841
-    #string = strip_everything_but_characters(string)
-    x, y = calculate_entropy(string, sample_size, ap, bp, cp)
-    plt.plot(x, y, color='blue')
-    plt.title("Graph Of Entropy")
-    plt.xlabel("String Location")
-    plt.ylabel("Fast Entropy Value")
-    plt.show()
+def perform_experiement(files, combine):
+    left_symbols, right_symbols = get_values_from_file(files)
+    if combine:
+        combined_strings = []
+        for left, right in zip(left_symbols, right_symbols):
+            combined_strings.append(combine_left_right(left, right))
+        compare_entropies(combined_strings, 64, files)
+    else:
+        compare_entropies(left_symbols+right_symbols, 16, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files])
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
@@ -188,35 +185,10 @@ if __name__ == "__main__":
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):
         if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]): # Check if we have another file
-            left_symbols, right_symbols = get_values_from_file(sys.argv[1:3])
-            if combine:
-                combined_strings = []
-                for left, right in zip(left_symbols, right_symbols):
-                    combined_strings.append(combine_left_right(left, right))
-                compare_entropies(combined_strings, 64, sys.argv[1:3])
-            else:
-                compare_entropies(left_symbols+right_symbols, 16, [x+"_LEFT" for x in sys.argv[1:3]] + [x+"_RIGHT" for x in sys.argv[1:3]])
-
+            perform_experiement(sys.argv[1:3], combine)
         else:# Else we can proceed with one file
-            left_symbols, right_symbols = get_values_from_file([sys.argv[1]])
-            left_symbols = left_symbols[0]
-            right_symbols = right_symbols[0]
-
-            if combine:
-                combined_strings = combine_left_right(left_symbols, right_symbols)
-                compare_entropies([combined_strings], 64, [sys.argv[1]])
-            else:
-                compare_entropies([left_symbols, right_symbols], 16, [sys.argv[1]+"_LEFT", sys.argv[1]+"_RIGHT"])
+            perform_experiement(sys.argv[1:2], combine)
 
     else:
         # We have a folder, so we handel it like a folder
-        pass
-
-    """if len(sys.argv) == 2:
-        string = open(sys.argv[1], 'r').read()
-        string = strip_everything_but_characters(string)
-        freq_dist = sorted_freq_dist(string)
-        prob_dist = {}
-        for t in freq_dist:
-            prob_dist[t[0]] = t[1]
-        singular_string(string, 30)"""
+        perform_experiement([os.path.join(sys.argv[1], f) for f in os.listdir(sys.argv[1]) if os.path.join(sys.argv[1], f) and f.endswith(".txt")], combine)

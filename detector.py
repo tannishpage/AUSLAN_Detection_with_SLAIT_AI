@@ -157,15 +157,15 @@ def compare_entropies(strings, sample_size,
     plt.legend(legend)
     plt.show()
 
-def perform_experiement(files, combine):
+def perform_experiement(files, combine, sample_size):
     left_symbols, right_symbols = get_values_from_file(files)
     if combine:
         combined_strings = []
         for left, right in zip(left_symbols, right_symbols):
             combined_strings.append(combine_left_right(left, right))
-        compare_entropies(combined_strings, 64, files)
+        compare_entropies(combined_strings, sample_size, files)
     else:
-        compare_entropies(left_symbols+right_symbols, 16, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files])
+        compare_entropies(left_symbols+right_symbols, sample_size, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files])
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
@@ -177,18 +177,22 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(USAGE)
         exit(0)
-    if len(sys.argv) > 4:
+    if len(sys.argv) > 6:
         print(USAGE)
         exit(0)
     combine = "--combine" in sys.argv
+    if combine:
+        sample_size = 64 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
+    else:
+        sample_size = 16 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
 
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):
         if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]): # Check if we have another file
-            perform_experiement(sys.argv[1:3], combine)
+            perform_experiement(sys.argv[1:3], combine, sample_size)
         else:# Else we can proceed with one file
-            perform_experiement(sys.argv[1:2], combine)
+            perform_experiement(sys.argv[1:2], combine, sample_size)
 
     else:
         # We have a folder, so we handel it like a folder
-        perform_experiement([os.path.join(sys.argv[1], f) for f in os.listdir(sys.argv[1]) if os.path.join(sys.argv[1], f) and f.endswith(".txt")], combine)
+        perform_experiement([os.path.join(sys.argv[1], f) for f in os.listdir(sys.argv[1]) if os.path.join(sys.argv[1], f) and f.endswith(".txt")], combine, sample_size)

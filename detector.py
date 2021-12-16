@@ -89,9 +89,24 @@ def combine_left_right(left_string, right_string):
 
     return new_string
 
-def get_symbols(hand, file_name):
-    # Supposed to extract the symbols of the given hand
-    pass
+def get_symbols(key, file_name):
+    """
+    Retrieves the values from a file formatted in the following way
+
+    key:value1,value2,value3,... etc
+
+    Parameters
+        - key : The key to look for
+        - file_name : the name of the file to look for the key in
+    Returns
+        A list of values
+    """
+    file = open(file_name, 'r')
+    for line in file.readlines():
+        line = line.rstrip()
+        if line.startswith(key):
+            values = line.split(":")[1].split(",")
+            return values
 
 ############### Functions to run experiments ###############
 def main():
@@ -159,6 +174,7 @@ if __name__ == "__main__":
     else:
         # We have a folder, so we handel it like a folder
         pass
+
     if len(sys.argv) == 2:
         string = open(sys.argv[1], 'r').read()
         string = strip_everything_but_characters(string)

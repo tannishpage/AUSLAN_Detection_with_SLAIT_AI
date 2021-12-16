@@ -1,21 +1,9 @@
-"""
-TODO :
-- Try to combine left and right hand symbols to form a symbol set of size 64
-
-AA, AB, AC, AD, AE, AF, AG, AH
-BA, BB, BC, BD, BE, BF, BG, BH
-CA, CB, CC, CD, CE, CF, CG, CH
-DA, DB, DC, DD, DE, DF, DG, DH
-EA, EB, EC, ED, EE, EF, EG, EH
-FA, FB, FC, FD, FE, FF, FG, FH
-GA, GB, GC, GD, GE, GF, GG, GH
-HA, HB, HC, HD, HE, HF, HG, HH
-"""
-
 from slaitai_entropy import FastEntropyNgram, FastEntropy4, ShannonEntropy, String2NGramList
 import random
 import matplotlib.pyplot as plt
 import sys
+import os
+random.seed(128) # Helps repetability of experiments
 
 def generate_random_seq(n, alphabets):
     """
@@ -28,20 +16,8 @@ def generate_random_seq(n, alphabets):
     Returns
         A randomly generated string
     """
-    random.seed(420) # For repetability of experiment
-    #sentence = "thequickbrownfoxjumpedoverthelazydog"
     string = [random.choice(alphabets) for x in range(0, n)]
     random_numbers = set()
-
-    #This code is redundent but fun to play with
-    #for i in range(0, 1):
-    #    x = random.randint(0, len(string))
-    #    while x in random_numbers:
-    #        x = random.randint(0, len(string))
-    #    for j, e in enumerate(range(x, x+len(sentence))):
-    #        string[e] = sentence[j]
-    #        random_numbers.add(j)
-
     return string
 
 def generate_random_seq_with_probs(n, prob_dist):
@@ -87,7 +63,8 @@ def sorted_freq_dist(symbols):
 
     for alphabet in alphabets:
         freq_dist.append((alphabet, symbols.count(alphabet)))
-    freq_dist.sort(key=lambda x: x[1], reverse=True) # Sort based on second value, in descending order
+    # Sort based on second value, in descending order
+    freq_dist.sort(key=lambda x: x[1], reverse=True)
     return freq_dist
 
 def calculate_entropy(string, sample_size, ap, bp, cp):
@@ -98,21 +75,29 @@ def calculate_entropy(string, sample_size, ap, bp, cp):
         sub_string = string[start:end+1]
         freq_dist = sorted_freq_dist(sub_string)
         most_freq = freq_dist[0][0] # Most frequent symbol
-        entropies.append(FastEntropy4(sub_string, len(sub_string), most_freq, len(freq_dist), ap, bp, cp)[0])
+        entropies.append(FastEntropy4(sub_string, len(sub_string), most_freq,
+                                        len(freq_dist), ap, bp, cp)[0])
         print(i+1, string[start:end+1])
         start = end
 
     return (range(sample_size, N, sample_size), entropies)
 
-def convert_left_right_to_one_string(left_string, right_string):
+def combine_left_right(left_string, right_string):
     new_string = []
     for left, right in zip(left_string, right_string):
         new_string.append(left+right)
 
     return new_string
+
+def get_symbols(hand, file_name):
+    # Supposed to extract the symbols of the given hand
+    pass
+
+############### Functions to run experiments ###############
 def main():
     # Running with random characters and graphing
-    string = generate_random_seq(5000, 'abcdefghijklmnopqrstuvwxyz') # We have a unigram
+    # We have a unigram
+    string = generate_random_seq(5000, 'abcdefghijklmnopqrstuvwxyz')
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
@@ -153,12 +138,27 @@ def singular_string(string, sample_size):
     plt.show()
 
 if __name__ == "__main__":
+    USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
+   OR: python3 detector.py <path_to_text_files> [options]
+
+        --combine       Will combine the left and right hand to make a symbol set of size 64
+            """
     if len(sys.argv) < 2:
-        print("Usage: python3 test.py <path_to_text_file> [<path_to_text_file> --combine]")
+        print(USAGE)
         exit(0)
     if len(sys.argv) > 4:
-        print("Usage: python3 test.py <path_to_text_file> [<path_to_text_file> --combine]")
+        print(USAGE)
         exit(0)
+    combine = "--combine" in sys.argv
+
+    # Check if the first path is a file or a folder
+    if os.path.isfile(sys.argv[1]):
+        # Check if we have another file
+        # Else we can proceed with one file
+        pass
+    else:
+        # We have a folder, so we handel it like a folder
+        pass
     if len(sys.argv) == 2:
         string = open(sys.argv[1], 'r').read()
         string = strip_everything_but_characters(string)
@@ -166,27 +166,4 @@ if __name__ == "__main__":
         prob_dist = {}
         for t in freq_dist:
             prob_dist[t[0]] = t[1]
-        singular_string(string, 30)
-    elif len(sys.argv) == 3:
-        string_one = open(sys.argv[1], 'r').read()
-        string_one = strip_everything_but_characters(string_one)
-        freq_dist_one = sorted_freq_dist(string_one)
-        prob_dist_one = {}
-        for t in freq_dist_one:
-            prob_dist_one[t[0]] = t[1]
-
-        string_two = open(sys.argv[2], 'r').read()
-        string_two = strip_everything_but_characters(string_two)
-        freq_dist_two = sorted_freq_dist(string_two)
-        prob_dist_two = {}
-        for t in freq_dist_two:
-            prob_dist_two[t[0]] = t[1]
-        compare_entropies(string_one, string_two, 30)
-    else:
-        string_one = open(sys.argv[1], 'r').read()
-        string_one = strip_everything_but_characters(string_one)
-        string_two = open(sys.argv[2], 'r').read()
-        string_two = strip_everything_but_characters(string_two)
-        string = convert_left_right_to_one_string(string_one, string_two)
-        freq_dis = sorted_freq_dist(string)
         singular_string(string, 30)

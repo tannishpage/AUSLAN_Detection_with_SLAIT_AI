@@ -130,3 +130,7 @@ dmypy.json
 main_entropy.py
 slaitai.py
 slaitai_entropy.py
+*.PNG
+*.png
+*.jpg
+*.JPEG

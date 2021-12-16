@@ -127,3 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+main_entropy.py
+slaitai.py
+slaitai_entropy.py

@@ -96,8 +96,8 @@ def get_symbols(key, file_name):
     key:value1,value2,value3,... etc
 
     Parameters
-        - key : The key to look for
-        - file_name : the name of the file to look for the key in
+        - key (string): The key to look for
+        - file_name (string): the name of the file to look for the key in
     Returns
         A list of values
     """
@@ -107,7 +107,25 @@ def get_symbols(key, file_name):
         if line.startswith(key):
             values = line.split(":")[1].split(",")
             return values
+def get_values_from_file(files):
+    """
+    Takes a list of files and returns a tuple of the left and right symbols
+    within each file as a list of lists per file
 
+    Parameters
+        - files (list<string>) : a list of file names of strings
+    Returns
+        A tuple<list<list<string>> where each list within the second level will
+        be organized according to the files list
+    """
+    symbols_left = []
+    symbols_right = []
+    for file in files:
+        left = get_symbols("left", file)
+        right = get_symbols("right", file)
+        symbols_left.append(left)
+        symbols_right.append(right)
+    return symbols_left, symbols_right
 ############### Functions to run experiments ###############
 def main():
     # Running with random characters and graphing
@@ -123,20 +141,20 @@ def main():
     plt.ylabel("Fast Entropy Value")
     plt.show()
 
-def compare_entropies(string1, string2, sample_size):
+def compare_entropies(strings, sample_size,
+                        legend=["String 1", "String 2"],
+                        title="Graph of Entropy"):
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
-    string = strip_everything_but_characters(string1)
-    x1, y1 = calculate_entropy(string, sample_size, ap, bp, cp)
-    plt.plot(x1, y1, color='blue')
-    string = strip_everything_but_characters(string2)
-    x2, y2 = calculate_entropy(string, sample_size, ap, bp, cp)
-    plt.plot(x2, y2, color='orange')
-    plt.title("Graph Of Entropy")
+    for string in strings:
+        x, y = calculate_entropy(string, sample_size, ap, bp, cp)
+        plt.plot(x, y)
+
+    plt.title(title)
     plt.xlabel("String Location")
     plt.ylabel("Fast Entropy Value")
-    plt.legend(["String 1", "String 2"])
+    plt.legend(legend)
     plt.show()
 
 
@@ -156,7 +174,8 @@ if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
    OR: python3 detector.py <path_to_text_files> [options]
 
-        --combine       Will combine the left and right hand to make a symbol set of size 64
+        --combine           Will combine the left and right hand to make a symbol set of size 64
+        --sample_size       The number of samples to use to calculate entropy. Default is 64 for combine and 16 for normal
             """
     if len(sys.argv) < 2:
         print(USAGE)
@@ -168,18 +187,36 @@ if __name__ == "__main__":
 
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):
-        # Check if we have another file
-        # Else we can proceed with one file
-        pass
+        if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]): # Check if we have another file
+            left_symbols, right_symbols = get_values_from_file(sys.argv[1:3])
+            if combine:
+                combined_strings = []
+                for left, right in zip(left_symbols, right_symbols):
+                    combined_strings.append(combine_left_right(left, right))
+                compare_entropies(combined_strings, 64, sys.argv[1:3])
+            else:
+                compare_entropies(left_symbols+right_symbols, 16, [x+"_LEFT" for x in sys.argv[1:3]] + [x+"_RIGHT" for x in sys.argv[1:3]])
+
+        else:# Else we can proceed with one file
+            left_symbols, right_symbols = get_values_from_file([sys.argv[1]])
+            left_symbols = left_symbols[0]
+            right_symbols = right_symbols[0]
+
+            if combine:
+                combined_strings = combine_left_right(left_symbols, right_symbols)
+                compare_entropies([combined_strings], 64, [sys.argv[1]])
+            else:
+                compare_entropies([left_symbols, right_symbols], 16, [sys.argv[1]+"_LEFT", sys.argv[1]+"_RIGHT"])
+
     else:
         # We have a folder, so we handel it like a folder
         pass
 
-    if len(sys.argv) == 2:
+    """if len(sys.argv) == 2:
         string = open(sys.argv[1], 'r').read()
         string = strip_everything_but_characters(string)
         freq_dist = sorted_freq_dist(string)
         prob_dist = {}
         for t in freq_dist:
             prob_dist[t[0]] = t[1]
-        singular_string(string, 30)
+        singular_string(string, 30)"""

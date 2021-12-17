@@ -107,6 +107,7 @@ def get_symbols(key, file_name):
         if line.startswith(key):
             values = line.split(":")[1].split(",")
             return values
+
 def get_values_from_file(files):
     """
     Takes a list of files and returns a tuple of the left and right symbols

@@ -1,6 +1,6 @@
 import sys
 import os
-from detector import get_values_from_file
+from detector import get_symbols
 import random
 
 def main():
@@ -10,19 +10,23 @@ def main():
 
     data_files = [os.path.join(sys.argv[1], x) for x in os.listdir(sys.argv[1])
                     if x.endswith(".txt")]
+    output_dir = sys.argv[2]
+    all_labels = []
+    all_left_hand = []
+    all_right_hand = []
+    all_frame_number = []
+    for file in data_files:
+        label = get_symbols("label", file)
+        left_hand = get_symbols("left", file)
+        right_hand = get_symbols("right", file)
+        frame_number = get_symbols("frame", file)
+        all_labels += label
+        all_left_hand += left_hand
+        all_right_hand += right_hand
+        all_frame_number += frame_number
 
-    left_symbols, right_symbols = get_values_from_file(data_files)
-    left = []
-    right = []
-    count = 0
-    for l, r in zip(left_symbols, right_symbols):
-        print(data_files[count])
-        left +=  l
-        right += r
-        count += 1
-    file = open(os.path.join(sys.argv[2], "data.txt"), 'w')
-    file.write(f"left:{','.join(left)}\nright:{','.join(right)}")
-    file.close()
+    data_file = open(os.path.join(sys.argv[2], "data.txt"), 'w')
+    data_file.write(f"frame:{','.join(all_frame_number)}\nleft:{','.join(all_left_hand)}\nright:{','.join(all_right_hand)}\nlabel:{','.join(all_labels)}")
 
 if __name__ == "__main__":
     main()

@@ -121,12 +121,16 @@ def get_values_from_file(files):
     """
     symbols_left = []
     symbols_right = []
+    labels = []
     for file in files:
         left = get_symbols("left", file)
         right = get_symbols("right", file)
+        label = get_symbols("label", file)
+        label = [int(l) for l in label]
         symbols_left.append(left)
         symbols_right.append(right)
-    return symbols_left, symbols_right
+        labels.append(label)
+    return symbols_left, symbols_right, labels
 ############### Functions to run experiments ###############
 def main():
     # Running with random characters and graphing
@@ -144,29 +148,38 @@ def main():
 
 def compare_entropies(strings, sample_size,
                         legend=["String 1", "String 2"],
-                        title="Graph of Entropy"):
+                        title="Graph of Entropy",
+                        labels=None):
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
-    for string in strings:
+    for i, string in enumerate(strings):
         x, y = calculate_entropy(string, sample_size, ap, bp, cp)
+        plt.subplot(2, 1, 1)
         plt.plot(x, y)
-
+        if labels != None:
+            plt.subplot(2, 1, 2)
+            plt.plot(range(0, len(labels[i//2])), labels[i//2])
+    plt.subplot(2, 1, 1)
     plt.title(title)
     plt.xlabel("String Location")
     plt.ylabel("Fast Entropy Value")
     plt.legend(legend)
+    plt.subplot(2, 1, 2)
+    plt.title("Segment labels")
+    plt.xlabel("String Location")
+    plt.ylabel("Class Label")
     plt.show()
 
 def perform_experiement(files, combine, sample_size):
-    left_symbols, right_symbols = get_values_from_file(files)
+    left_symbols, right_symbols, labels = get_values_from_file(files)
     if combine:
         combined_strings = []
         for left, right in zip(left_symbols, right_symbols):
             combined_strings.append(combine_left_right(left, right))
-        compare_entropies(combined_strings, sample_size, files)
+        compare_entropies(combined_strings, sample_size, files, labels=labels)
     else:
-        compare_entropies(left_symbols+right_symbols, sample_size, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files])
+        compare_entropies(left_symbols+right_symbols, sample_size, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files], labels=labels)
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]

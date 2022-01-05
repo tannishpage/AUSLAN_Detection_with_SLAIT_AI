@@ -25,7 +25,7 @@ def main():
         all_right_hand += right_hand
         all_frame_number += frame_number
 
-    data_file = open(os.path.join(sys.argv[2], "data.txt"), 'w')
+    data_file = open(sys.argv[2], 'w')
     data_file.write(f"frame:{','.join(all_frame_number)}\nleft:{','.join(all_left_hand)}\nright:{','.join(all_right_hand)}\nlabel:{','.join(all_labels)}")
 
 if __name__ == "__main__":

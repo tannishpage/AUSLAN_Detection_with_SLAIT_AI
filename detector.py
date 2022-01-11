@@ -131,6 +131,12 @@ def get_values_from_file(files):
         symbols_right.append(right)
         labels.append(label)
     return symbols_left, symbols_right, labels
+
+def calculate_average(left, right):
+    average = []
+    for l, r in zip(left, right):
+        average.append((l+r)/2)
+    return average
 ############### Functions to run experiments ###############
 def main():
     # Running with random characters and graphing
@@ -171,7 +177,36 @@ def compare_entropies(strings, sample_size,
     plt.ylabel("Class Label")
     plt.show()
 
-def perform_experiement(files, combine, sample_size):
+def compare_entropies_average(left, right, sample_size,
+                        legend=["String 1", "String 2"],
+                        title="Graph of Entropy",
+                        labels=None):
+    ap = 0.0095
+    bp = 4.0976
+    cp = 3.9841
+    i = 0
+    for l, r in zip(left, right):
+        x, y_l = calculate_entropy(l, sample_size, ap, bp, cp)
+        x, y_r = calculate_entropy(r, sample_size, ap, bp, cp)
+        y_avg = calculate_average(y_l, y_r)
+        plt.subplot(2, 1, 1)
+        plt.plot(x, y_avg)
+        if labels != None:
+            plt.subplot(2, 1, 2)
+            plt.plot(range(0, len(labels[i//2])), labels[i//2])
+        i += 1
+    plt.subplot(2, 1, 1)
+    plt.title(title)
+    plt.xlabel("String Location")
+    plt.ylabel("Fast Entropy Value")
+    plt.legend(legend)
+    plt.subplot(2, 1, 2)
+    plt.title("Segment labels")
+    plt.xlabel("String Location")
+    plt.ylabel("Class Label")
+    plt.show()
+
+def perform_experiement(files, combine, sample_size, average=False):
     left_symbols, right_symbols, labels = get_values_from_file(files)
     if combine:
         combined_strings = []
@@ -179,7 +214,10 @@ def perform_experiement(files, combine, sample_size):
             combined_strings.append(combine_left_right(left, right))
         compare_entropies(combined_strings, sample_size, files, labels=labels)
     else:
-        compare_entropies(left_symbols+right_symbols, sample_size, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files], labels=labels)
+        if average:
+            compare_entropies_average(left_symbols, right_symbols, sample_size, files, labels=labels)
+        else:
+            compare_entropies(left_symbols+right_symbols, sample_size, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files], labels=labels)
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
@@ -187,6 +225,7 @@ if __name__ == "__main__":
 
         --combine           Will combine the left and right hand to make a symbol set of size 64
         --sample_size       The number of samples to use to calculate entropy. Default is 64 for combine and 16 for normal
+        --average           Averages the left and right entropies, Not applicable with --combine
             """
     if len(sys.argv) < 2:
         print(USAGE)
@@ -195,6 +234,7 @@ if __name__ == "__main__":
         print(USAGE)
         exit(0)
     combine = "--combine" in sys.argv
+    average = "--average" in sys.argv
     if combine:
         sample_size = 64 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
     else:
@@ -203,9 +243,9 @@ if __name__ == "__main__":
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):
         if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]): # Check if we have another file
-            perform_experiement(sys.argv[1:3], combine, sample_size)
+            perform_experiement(sys.argv[1:3], combine, sample_size, average)
         else:# Else we can proceed with one file
-            perform_experiement(sys.argv[1:2], combine, sample_size)
+            perform_experiement(sys.argv[1:2], combine, sample_size, average)
 
     else:
         # We have a folder, so we handel it like a folder

@@ -138,6 +138,17 @@ def calculate_average(left, right):
         average.append((l+r)/2)
     return average
 
+def create_segments(labels, sample_size):
+    start = 0
+    seg_labels = []
+    for end in range(sample_size, len(labels), sample_size):
+        if sum(labels[start:end])/sample_size >= 0.5:
+            seg_labels.append(1)
+        else:
+            seg_labels.append(0)
+        start = end
+    return seg_labels
+
 ############### Functions to run experiments ###############
 def main():
     # Running with random characters and graphing
@@ -160,15 +171,17 @@ def compare_entropies(strings, sample_size,
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
+    if labels != None:
+        seg_labels = create_segments(labels[0], sample_size)
     for i, string in enumerate(strings):
         x, y = calculate_entropy(string, sample_size, ap, bp, cp)
         plt.plot(x, y)
         if labels != None:
-            plt.plot(range(0, len(labels[i//2])), labels[i//2])
+            plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
     plt.title(title)
     plt.xlabel("String Location")
     plt.ylabel("Fast Entropy Value")
-    plt.legend(legend)
+    plt.legend(legend+["1 Sign 0 Non-Sign"])
     plt.show()
 
 def compare_entropies_average(left, right, sample_size,

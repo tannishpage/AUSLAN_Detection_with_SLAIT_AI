@@ -62,7 +62,7 @@ def sorted_freq_dist(symbols):
     freq_dist = []
 
     for alphabet in alphabets:
-        freq_dist.append((alphabet, symbols.count(alphabet)))
+        freq_dist.append((alphabet, symbols.count(alphabet)/len(symbols)))
     # Sort based on second value, in descending order
     freq_dist.sort(key=lambda x: x[1], reverse=True)
     return freq_dist
@@ -137,6 +137,7 @@ def calculate_average(left, right):
     for l, r in zip(left, right):
         average.append((l+r)/2)
     return average
+
 ############### Functions to run experiments ###############
 def main():
     # Running with random characters and graphing
@@ -154,32 +155,25 @@ def main():
 
 def compare_entropies(strings, sample_size,
                         legend=["String 1", "String 2"],
-                        title="Graph of Entropy",
+                        title="Graph of Entropy and Labels",
                         labels=None):
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
     for i, string in enumerate(strings):
         x, y = calculate_entropy(string, sample_size, ap, bp, cp)
-        plt.subplot(2, 1, 1)
         plt.plot(x, y)
         if labels != None:
-            plt.subplot(2, 1, 2)
             plt.plot(range(0, len(labels[i//2])), labels[i//2])
-    plt.subplot(2, 1, 1)
     plt.title(title)
     plt.xlabel("String Location")
     plt.ylabel("Fast Entropy Value")
     plt.legend(legend)
-    plt.subplot(2, 1, 2)
-    plt.title("Segment labels")
-    plt.xlabel("String Location")
-    plt.ylabel("Class Label")
     plt.show()
 
 def compare_entropies_average(left, right, sample_size,
                         legend=["String 1", "String 2"],
-                        title="Graph of Entropy",
+                        title="Graph of Entropy and Labels",
                         labels=None):
     ap = 0.0095
     bp = 4.0976
@@ -189,21 +183,14 @@ def compare_entropies_average(left, right, sample_size,
         x, y_l = calculate_entropy(l, sample_size, ap, bp, cp)
         x, y_r = calculate_entropy(r, sample_size, ap, bp, cp)
         y_avg = calculate_average(y_l, y_r)
-        plt.subplot(2, 1, 1)
         plt.plot(x, y_avg)
         if labels != None:
-            plt.subplot(2, 1, 2)
             plt.plot(range(0, len(labels[i//2])), labels[i//2])
         i += 1
-    plt.subplot(2, 1, 1)
     plt.title(title)
     plt.xlabel("String Location")
     plt.ylabel("Fast Entropy Value")
     plt.legend(legend)
-    plt.subplot(2, 1, 2)
-    plt.title("Segment labels")
-    plt.xlabel("String Location")
-    plt.ylabel("Class Label")
     plt.show()
 
 def perform_experiement(files, combine, sample_size, average=False):

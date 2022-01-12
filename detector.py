@@ -191,19 +191,19 @@ def compare_entropies_average(left, right, sample_size,
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
-    i = 0
+    if labels != None:
+        seg_labels = create_segments(labels[0], sample_size)
     for l, r in zip(left, right):
         x, y_l = calculate_entropy(l, sample_size, ap, bp, cp)
         x, y_r = calculate_entropy(r, sample_size, ap, bp, cp)
         y_avg = calculate_average(y_l, y_r)
         plt.plot(x, y_avg)
         if labels != None:
-            plt.plot(range(0, len(labels[i//2])), labels[i//2])
-        i += 1
+            plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
     plt.title(title)
     plt.xlabel("String Location")
     plt.ylabel("Fast Entropy Value")
-    plt.legend(legend)
+    plt.legend(legend+["1 Sign 0 Non-Sign"])
     plt.show()
 
 def perform_experiement(files, combine, sample_size, average=False):

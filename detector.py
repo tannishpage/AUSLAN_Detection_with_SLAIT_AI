@@ -226,6 +226,7 @@ if __name__ == "__main__":
         --combine           Will combine the left and right hand to make a symbol set of size 64
         --sample_size       The number of samples to use to calculate entropy. Default is 64 for combine and 16 for normal
         --average           Averages the left and right entropies, Not applicable with --combine
+        --ngram             The n-gram to use for entropy calculation, default is 1 (unigrams)
             """
     if len(sys.argv) < 2:
         print(USAGE)
@@ -235,6 +236,10 @@ if __name__ == "__main__":
         exit(0)
     combine = "--combine" in sys.argv
     average = "--average" in sys.argv
+
+    # By default script uses unigrams. If using --ngram, then ngram will be set
+    # to user specified number.
+    ngram = 1 if "--ngram" not in sys.argv else int(sys.argv[sys.argv.index("--ngram")+1])
     if combine:
         sample_size = 64 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
     else:

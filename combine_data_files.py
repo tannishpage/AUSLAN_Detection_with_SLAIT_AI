@@ -16,6 +16,7 @@ def main():
     all_right_hand = []
     all_frame_number = []
     for file in data_files:
+        print("Adding: ", file)
         label = get_symbols("label", file)
         left_hand = get_symbols("left", file)
         right_hand = get_symbols("right", file)
@@ -27,6 +28,7 @@ def main():
 
     data_file = open(sys.argv[2], 'w')
     data_file.write(f"frame:{','.join(all_frame_number)}\nleft:{','.join(all_left_hand)}\nright:{','.join(all_right_hand)}\nlabel:{','.join(all_labels)}")
+    print("Finished Combining")
 
 if __name__ == "__main__":
     main()

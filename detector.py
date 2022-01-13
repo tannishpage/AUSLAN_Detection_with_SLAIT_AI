@@ -54,6 +54,8 @@ def strip_everything_but_characters(text):
 def get_alphabets(symbols):
     alphabets = set()
     for symbol in symbols:
+        if type(symbol) == type(list()):
+            symbol = tuple(symbol)
         alphabets.add(symbol)
     return list(alphabets)
 
@@ -89,7 +91,7 @@ def calculate_ngram_entropy(string, sample_size, ap, bp, cp):
     for i, end in enumerate(range(sample_size, N, sample_size)):
         sub_string = string[start:end+1]
         freq_dist = sorted_freq_dist(sub_string)
-        most_freq = freq_dist[0][0]
+        most_freq = list(freq_dist[0][0])
         entropies.append(FastEntropyNgram(sub_string, len(sub_string), most_freq,
                                             len(freq_dist), ap, bp, cp)[0])
         print(i+1, string[start:end+1])
@@ -243,26 +245,50 @@ def compare_entropies_ngram_average(left, right, sample_size,
     plt.legend(legend+["1 Sign 0 Non-Sign"])
     plt.show()
 
+def compare_entropies_ngram(strings, sample_size,
+                        legend=["String 1", "String 2"],
+                        title="Graph of Entropy and Labels",
+                        labels=None):
+    ap = 0.0095
+    bp = 4.0976
+    cp = 3.9841
+    if labels != None:
+        seg_labels = create_segments(labels, sample_size)
+
+    x, y = calculate_ngram_entropy(strings, sample_size, ap, bp, cp)
+    plt.plot(x, y)
+    if labels != None:
+        plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
+    plt.title(title)
+    plt.xlabel("Ngram Location")
+    plt.ylabel("Fast Entropy Value")
+    plt.legend(legend+["1 Sign 0 Non-Sign"])
+    plt.show()
+
 def perform_ngram_experiment(files, combine, sample_size, ngram, average=False):
     left_symbols, right_symbols, labels = get_values_from_file(files)
     left_symbols = "".join(left_symbols[0])
     right_symbols = "".join(right_symbols[0])
     labels = labels[0]
 
-    if combine:
-        print("Can't use combine when ngram > 1")
-        exit(1)
+    if average:
+        left_ngram = String2NGramList(left_symbols, ngram)[0]
+        right_ngram = String2NGramList(right_symbols, ngram)[0]
 
-    if not average:
-        print("Please use average flag when using ngram > 1")
-        exit(1)
-
-    left_ngram = String2NGramList(left_symbols, ngram)[0]
-    right_ngram = String2NGramList(right_symbols, ngram)[0]
-
-    compare_entropies_ngram_average(left_ngram, right_ngram, sample_size, files,
+        compare_entropies_ngram_average(left_ngram, right_ngram, sample_size,
+                            files,
                             title=f"Graph of {ngram}-gram Entropy and Labels",
                             labels=labels)
+    elif combine:
+        combined_string = combine_left_right(left_symbols, right_symbols)
+        combined_ngram = String2NGramList(combined_string, ngram)[0]
+        compare_entropies_ngram(combined_ngram, sample_size, files,
+                            title=f"Graph of {ngram}-gram Entropy and Labels",
+                            labels=labels)
+
+    else:
+        print("Please use --average or --combine when using ngram > 1")
+        exit(1)
 
 
 def perform_experiement(files, combine, sample_size, average=False):

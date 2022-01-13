@@ -91,7 +91,9 @@ def calculate_ngram_entropy(string, sample_size, ap, bp, cp):
     for i, end in enumerate(range(sample_size, N, sample_size)):
         sub_string = string[start:end+1]
         freq_dist = sorted_freq_dist(sub_string)
-        most_freq = list(freq_dist[0][0])
+        most_freq = freq_dist[0][0]
+        if type(most_freq) == type(tuple()):
+            most_freq = list(most_freq)
         entropies.append(FastEntropyNgram(sub_string, len(sub_string), most_freq,
                                             len(freq_dist), ap, bp, cp)[0])
         print(i+1, string[start:end+1])

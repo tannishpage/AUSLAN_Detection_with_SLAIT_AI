@@ -267,11 +267,14 @@ def compare_entropies_ngram(strings, sample_size,
     plt.legend(legend+["1 Sign 0 Non-Sign"])
     plt.show()
 
-def perform_ngram_experiment(files, combine, sample_size, ngram, average=False):
+def perform_ngram_experiment(files, combine, sample_size, ngram, average=False, plot_labels=False):
     left_symbols, right_symbols, labels = get_values_from_file(files)
     left_symbols = "".join(left_symbols[0])
     right_symbols = "".join(right_symbols[0])
     labels = labels[0]
+
+    if not plot_labels:
+        labels = None
 
     if average:
         left_ngram = String2NGramList(left_symbols, ngram)[0]
@@ -293,8 +296,10 @@ def perform_ngram_experiment(files, combine, sample_size, ngram, average=False):
         exit(1)
 
 
-def perform_experiement(files, combine, sample_size, average=False):
+def perform_experiement(files, combine, sample_size, average=False, plot_labels=False):
     left_symbols, right_symbols, labels = get_values_from_file(files)
+    if not plot_labels:
+        labels = None
     if combine:
         combined_strings = []
         for left, right in zip(left_symbols, right_symbols):
@@ -314,6 +319,7 @@ if __name__ == "__main__":
         --sample_size       The number of samples to use to calculate entropy. Default is 64 for combine and 16 for normal
         --average           Averages the left and right entropies, Not applicable with --combine
         --ngram             The n-gram to use for entropy calculation, default is 1 (unigrams)
+        --plot_labels       Will plot labels in the entropy graph
             """
     if len(sys.argv) < 2:
         print(USAGE)
@@ -323,6 +329,7 @@ if __name__ == "__main__":
         exit(0)
     combine = "--combine" in sys.argv
     average = "--average" in sys.argv
+    plot_labels = "--plot_labels" in sys.argv
 
     # By default script uses unigrams. If using --ngram, then ngram will be set
     # to user specified number.
@@ -335,12 +342,12 @@ if __name__ == "__main__":
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):
         if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]): # Check if we have another file
-            perform_experiement(sys.argv[1:3], combine, sample_size, average)
+            perform_experiement(sys.argv[1:3], combine, sample_size, average, plot_labels)
         else:# Else we can proceed with one file
             if ngram > 1:
-                perform_ngram_experiment(sys.argv[1:2], combine, sample_size, ngram, average)
+                perform_ngram_experiment(sys.argv[1:2], combine, sample_size, ngram, average, plot_labels)
             else:
-                perform_experiement(sys.argv[1:2], combine, sample_size, average)
+                perform_experiement(sys.argv[1:2], combine, sample_size, average, plot_labels)
 
     else:
         # We have a folder, so we handel it like a folder

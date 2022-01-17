@@ -3,7 +3,7 @@ import os
 from detector import get_symbols
 import random
 
-def combine(data_files, output_dir):
+def combine(data_files, output_dir, write):
     all_labels = []
     all_left_hand = []
     all_right_hand = []
@@ -19,12 +19,55 @@ def combine(data_files, output_dir):
         all_left_hand += left_hand
         all_right_hand += right_hand
         all_frame_number += frame_number
+    if write:
+        data_file = open(output_dir, 'w')
+        data_file.write(f"frame:{','.join(all_frame_number)}\n\
+left:{','.join(all_left_hand)}\n\
+right:{','.join(all_right_hand)}\nlabel:{','.join(all_labels)}")
+    print("Finished Combining")
 
+    return all_labels, all_left_hand, all_right_hand, all_frame_number
+
+def interleave_data(data, seg_len, output_dir):
+    start = 0
+    labels = []
+    left_hand = []
+    right_hand = []
+    frame_number = []
+    for end in range(seg_len, len(data[0]), seg_len):
+        labels.append(data[0][start:end])
+        left_hand.append(data[1][start:end])
+        right_hand.append(data[2][start:end])
+        frame_number.append(data[3][start:end])
+        start = end
+
+    random.seed(seg_len)
+    random.shuffle(labels)
+    random.seed(seg_len)
+    random.shuffle(left_hand)
+    random.seed(seg_len)
+    random.shuffle(right_hand)
+    random.seed(seg_len)
+    random.shuffle(frame_number)
+
+    all_labels = []
+    all_left_hand = []
+    all_right_hand = []
+    all_frame_number = []
+
+    for index in range(0, len(labels)):
+        all_labels += labels[index]
+        all_left_hand += left_hand[index]
+        all_right_hand += right_hand[index]
+        all_frame_number += frame_number[index]
+
+    print("Done")
+    print("Writing to file...")
     data_file = open(output_dir, 'w')
     data_file.write(f"frame:{','.join(all_frame_number)}\n\
 left:{','.join(all_left_hand)}\n\
 right:{','.join(all_right_hand)}\nlabel:{','.join(all_labels)}")
-    print("Finished Combining")
+    print("Done")
 
 def main():
     USAGE = """Usage: python3 combine_data_files.py <path_to_data_files> -o <output dir> [options]
@@ -33,6 +76,8 @@ def main():
         -o                  The output directory for the combined file
         --randomize         Will combine the files in a random order
         --seed              A seed to use to initialize random
+        --interleave        Will take segments and insert them in random spots
+        --seg_len           The length of segment to interleave
             """
     if len(sys.argv) < 3:
         print(USAGE)
@@ -40,6 +85,8 @@ def main():
 
     randomize = "--randomize" in sys.argv
     seed_flag = "--seed" in sys.argv
+    interleave = "--interleave" in sys.argv
+    seg_len = 1500 if "--seg_len" not in sys.argv else int(sys.argv[sys.argv.index("--seg_len")+1])
     # If no seed is provided, then no seed is initialized
     if seed_flag:
         # Use seed provided by user.
@@ -67,9 +114,14 @@ def main():
         # Only shuffle if user wants to randomize
         random.shuffle(data_files)
 
-    combine(data_files, output_dir) # Run combine function on data files
+    # Will combine data files and write to file
+    all_data = combine(data_files, output_dir, not interleave)
 
-
+    if interleave:
+        # If we need to interlave, we will take the combined
+        # and interleave
+        print("Interleaving data...")
+        interleave_data(all_data, seg_len, output_dir)
 
 
 if __name__ == "__main__":

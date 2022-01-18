@@ -3,6 +3,8 @@ import random
 import matplotlib.pyplot as plt
 import sys
 import os
+import math
+import numpy
 random.seed(128) # Helps repetability of experiments
 
 def generate_random_seq(n, alphabets):
@@ -79,7 +81,7 @@ def calculate_entropy(string, sample_size, ap, bp, cp):
         most_freq = freq_dist[0][0] # Most frequent symbol
         entropies.append(FastEntropy4(sub_string, len(sub_string), most_freq,
                                         len(freq_dist), ap, bp, cp)[0])
-        print(i+1, string[start:end+1])
+        #print(i+1, string[start:end+1])
         start = end
 
     return (range(sample_size, N, sample_size), entropies)
@@ -96,7 +98,7 @@ def calculate_ngram_entropy(string, sample_size, ap, bp, cp):
             most_freq = list(most_freq)
         entropies.append(FastEntropyNgram(sub_string, len(sub_string), most_freq,
                                             len(freq_dist), ap, bp, cp)[0])
-        print(i+1, string[start:end+1])
+        #print(i+1, string[start:end+1])
         start = end
     return (range(sample_size, N, sample_size), entropies)
 
@@ -196,7 +198,7 @@ def main():
 def compare_entropies(strings, sample_size,
                         legend=["String 1", "String 2"],
                         title="Graph of Entropy and Labels",
-                        labels=None):
+                        labels=None, moving_averages=0):
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
@@ -207,16 +209,21 @@ def compare_entropies(strings, sample_size,
         plt.plot(x, y)
         if labels != None:
             plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
+    if moving_averages != 0:
+        entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
+        averages = compute_moving_average(entropies, moving_averages)
+        plt.plot(x[0:-moving_averages], averages)
+        legend += ["Moving Average"]
     plt.title(title)
     plt.xlabel("String Location")
     plt.ylabel("Fast Entropy Value")
-    plt.legend(legend+["1 Sign 0 Non-Sign"])
+    plt.legend(legend)
     plt.show()
 
 def compare_entropies_average(left, right, sample_size,
                         legend=["String 1", "String 2"],
                         title="Graph of Entropy and Labels",
-                        labels=None):
+                        labels=None, moving_averages=0):
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
@@ -229,16 +236,21 @@ def compare_entropies_average(left, right, sample_size,
         plt.plot(x, y_avg)
         if labels != None:
             plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
+    if moving_averages != 0:
+        entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
+        averages = compute_moving_average(entropies, moving_averages)
+        plt.plot(x[0:-moving_averages], averages)
+        legend += ["Moving Average"]
     plt.title(title)
     plt.xlabel("String Location")
     plt.ylabel("Fast Entropy Value")
-    plt.legend(legend+["1 Sign 0 Non-Sign"])
+    plt.legend(legend)
     plt.show()
 
 def compare_entropies_ngram_average(left, right, sample_size,
                         legend=["String 1", "String 2"],
                         title="Graph of Entropy and Labels",
-                        labels=None):
+                        labels=None, moving_averages=0):
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
@@ -252,16 +264,21 @@ def compare_entropies_ngram_average(left, right, sample_size,
     plt.plot(x, y_avg)
     if labels != None:
         plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
+    if moving_averages != 0:
+        entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
+        averages = compute_moving_average(entropies, moving_averages)
+        plt.plot(x[0:-moving_averages], averages)
+        legend += ["Moving Average"]
     plt.title(title)
     plt.xlabel("Ngram Location")
     plt.ylabel("Fast Entropy Value")
-    plt.legend(legend+["1 Sign 0 Non-Sign"])
+    plt.legend(legend)
     plt.show()
 
 def compare_entropies_ngram(strings, sample_size,
                         legend=["String 1", "String 2"],
                         title="Graph of Entropy and Labels",
-                        labels=None):
+                        labels=None, moving_averages=0):
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
@@ -272,13 +289,22 @@ def compare_entropies_ngram(strings, sample_size,
     plt.plot(x, y)
     if labels != None:
         plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
+
+    if moving_averages != 0:
+        # TODO: Entropies contain nan, calculating moving average is resulting in nan
+        # Drop all Nans or make them 0 to fix issue
+        entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
+        averages = compute_moving_average(entropies, moving_averages)
+        #print(averages)
+        plt.plot(x[0:-moving_averages], averages)
+        legend += ["Moving Average"]
     plt.title(title)
     plt.xlabel("Ngram Location")
     plt.ylabel("Fast Entropy Value")
-    plt.legend(legend+["1 Sign 0 Non-Sign"])
+    plt.legend(legend)
     plt.show()
 
-def perform_ngram_experiment(files, combine, sample_size, ngram, average=False, plot_labels=False):
+def perform_ngram_experiment(files, combine, sample_size, ngram, average=False, plot_labels=False, moving_averages=0):
     left_symbols, right_symbols, labels = get_values_from_file(files)
     left_symbols = "".join(left_symbols[0])
     right_symbols = "".join(right_symbols[0])
@@ -293,21 +319,21 @@ def perform_ngram_experiment(files, combine, sample_size, ngram, average=False, 
 
         compare_entropies_ngram_average(left_ngram, right_ngram, sample_size,
                             files,
-                            title=f"Graph of {ngram}-gram Entropy and Labels",
-                            labels=labels)
+                            f"Graph of {ngram}-gram Entropy and Labels",
+                            labels, moving_averages)
     elif combine:
         combined_string = combine_left_right(left_symbols, right_symbols)
         combined_ngram = String2NGramList(combined_string, ngram)[0]
         compare_entropies_ngram(combined_ngram, sample_size, files,
-                            title=f"Graph of {ngram}-gram Entropy and Labels",
-                            labels=labels)
+                            f"Graph of {ngram}-gram Entropy and Labels",
+                            labels, moving_averages)
 
     else:
         print("Please use --average or --combine when using ngram > 1")
         exit(1)
 
 
-def perform_experiement(files, combine, sample_size, average=False, plot_labels=False):
+def perform_experiement(files, combine, sample_size, average=False, plot_labels=False, moving_averages=0):
     left_symbols, right_symbols, labels = get_values_from_file(files)
     if not plot_labels:
         labels = None
@@ -315,12 +341,12 @@ def perform_experiement(files, combine, sample_size, average=False, plot_labels=
         combined_strings = []
         for left, right in zip(left_symbols, right_symbols):
             combined_strings.append(combine_left_right(left, right))
-        compare_entropies(combined_strings, sample_size, files, labels=labels)
+        compare_entropies(combined_strings, sample_size, files, "Graph of Entropy and Labels",labels, moving_averages)
     else:
         if average:
-            compare_entropies_average(left_symbols, right_symbols, sample_size, files, labels=labels)
+            compare_entropies_average(left_symbols, right_symbols, sample_size, files, "Graph of Entropy and Labels", labels, moving_averages)
         else:
-            compare_entropies(left_symbols+right_symbols, sample_size, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files], labels=labels)
+            compare_entropies(left_symbols+right_symbols, sample_size, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files], "Graph of Entropy and Labels", labels, moving_averages)
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
@@ -331,16 +357,29 @@ if __name__ == "__main__":
         --average           Averages the left and right entropies, Not applicable with --combine
         --ngram             The n-gram to use for entropy calculation, default is 1 (unigrams)
         --plot_labels       Will plot labels in the entropy graph
+        --moving_averages   Compute and plot moving averages of entropy on top of the entropy. Default sample size is 25
             """
     if len(sys.argv) < 2:
         print(USAGE)
         exit(0)
-    if len(sys.argv) > 7:
+    if len(sys.argv) > 9:
         print(USAGE)
         exit(0)
     combine = "--combine" in sys.argv
     average = "--average" in sys.argv
     plot_labels = "--plot_labels" in sys.argv
+    if "--moving_averages" in sys.argv:
+        index = sys.argv.index("--moving_averages") + 1
+        if index >= len(sys.argv):
+            moving_averages = 25
+        else:
+            value = sys.argv[index]
+            if value.isnumeric():
+                moving_averages = int(value)
+            else:
+                moving_averages = 25
+    else:
+        moving_averages = 0
 
     # By default script uses unigrams. If using --ngram, then ngram will be set
     # to user specified number.
@@ -353,12 +392,12 @@ if __name__ == "__main__":
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):
         if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]): # Check if we have another file
-            perform_experiement(sys.argv[1:3], combine, sample_size, average, plot_labels)
+            perform_experiement(sys.argv[1:3], combine, sample_size, average, plot_labels, moving_averages)
         else:# Else we can proceed with one file
             if ngram > 1:
-                perform_ngram_experiment(sys.argv[1:2], combine, sample_size, ngram, average, plot_labels)
+                perform_ngram_experiment(sys.argv[1:2], combine, sample_size, ngram, average, plot_labels, moving_averages)
             else:
-                perform_experiement(sys.argv[1:2], combine, sample_size, average, plot_labels)
+                perform_experiement(sys.argv[1:2], combine, sample_size, average, plot_labels, moving_averages)
 
     else:
         # We have a folder, so we handel it like a folder

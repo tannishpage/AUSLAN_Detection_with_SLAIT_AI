@@ -167,6 +167,17 @@ def create_segments(labels, sample_size):
         start = end
     return seg_labels
 
+def compute_moving_average(values, sample_size):
+    # Calculate first average
+    moving_averages = [sum(values[0:sample_size+1])/sample_size]
+    removed_index = 0 # The index that was removed from the sample
+    for value in values[sample_size+1:]:
+        # Calculating simple moving average
+        moving_averages.append(moving_averages[-1] + (value - values[removed_index])/sample_size)
+        removed_index += 1 # Increase index so we know the last removed value
+    return moving_averages
+
+
 ############### Functions to run experiments ###############
 def main():
     # Running with random characters and graphing

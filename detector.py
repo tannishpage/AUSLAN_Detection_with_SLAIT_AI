@@ -203,8 +203,7 @@ def main():
     plt.show()
 
 def compare_entropies(strings, sample_size,
-                        legend=["String 1", "String 2"],
-                        title="Graph of Entropy and Labels",
+                        title, xlabel, ylabel,legend,
                         labels=None, moving_averages=0):
     ap = 0.0095
     bp = 4.0976
@@ -221,16 +220,19 @@ def compare_entropies(strings, sample_size,
         averages = exponential_moving_average(entropies, moving_averages)
         plt.plot(x, averages)
         legend += ["Moving Average"]
+    fig = plt.figure(1)
+    fig.set_size_inches((19.2, 10.8))
     plt.title(title)
-    plt.xlabel("String Location")
-    plt.ylabel("Fast Entropy Value")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.legend(legend)
+    fig.savefig(title+".png", dpi=100)
     plt.show()
 
 def compare_entropies_average(left, right, sample_size,
-                        legend=["String 1", "String 2"],
-                        title="Graph of Entropy and Labels",
-                        labels=None, moving_averages=0):
+                              title, xlabel, ylabel,legend,
+                              labels=None, moving_averages=0):
+
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
@@ -249,15 +251,15 @@ def compare_entropies_average(left, right, sample_size,
         plt.plot(x, averages)
         legend += ["Moving Average"]
     plt.title(title)
-    plt.xlabel("String Location")
-    plt.ylabel("Fast Entropy Value")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.legend(legend)
     plt.show()
 
 def compare_entropies_ngram_average(left, right, sample_size,
-                        legend=["String 1", "String 2"],
-                        title="Graph of Entropy and Labels",
-                        labels=None, moving_averages=0):
+                                    title, xlabel, ylabel,legend,
+                                    labels=None, moving_averages=0):
+
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
@@ -277,15 +279,15 @@ def compare_entropies_ngram_average(left, right, sample_size,
         plt.plot(x, averages)
         legend += ["Moving Average"]
     plt.title(title)
-    plt.xlabel("Ngram Location")
-    plt.ylabel("Fast Entropy Value")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.legend(legend)
     plt.show()
 
 def compare_entropies_ngram(strings, sample_size,
-                        legend=["String 1", "String 2"],
-                        title="Graph of Entropy and Labels",
-                        labels=None, moving_averages=0):
+                            title, xlabel, ylabel,legend,
+                            labels=None, moving_averages=0):
+
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
@@ -303,12 +305,15 @@ def compare_entropies_ngram(strings, sample_size,
         plt.plot(x, averages)
         legend += ["Moving Average"]
     plt.title(title)
-    plt.xlabel("Ngram Location")
-    plt.ylabel("Fast Entropy Value")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
     plt.legend(legend)
     plt.show()
 
-def perform_ngram_experiment(files, combine, sample_size, ngram, average=False, plot_labels=False, moving_averages=0):
+def perform_ngram_experiment(files, combine, average, sample_size, ngram,
+                             title, xlabel, ylabel,
+                             plot_labels=False, moving_averages=0):
+
     left_symbols, right_symbols, labels = get_values_from_file(files)
     left_symbols = "".join(left_symbols[0])
     right_symbols = "".join(right_symbols[0])
@@ -322,22 +327,24 @@ def perform_ngram_experiment(files, combine, sample_size, ngram, average=False, 
         right_ngram = String2NGramList(right_symbols, ngram)[0]
 
         compare_entropies_ngram_average(left_ngram, right_ngram, sample_size,
-                            files,
-                            f"Graph of {ngram}-gram Entropy and Labels",
+                            title, xlabel, ylabel, files,
                             labels, moving_averages)
     elif combine:
         combined_string = combine_left_right(left_symbols, right_symbols)
         combined_ngram = String2NGramList(combined_string, ngram)[0]
-        compare_entropies_ngram(combined_ngram, sample_size, files,
-                            f"Graph of {ngram}-gram Entropy and Labels",
-                            labels, moving_averages)
+        compare_entropies_ngram(combined_ngram, sample_size,
+                                title, xlabel, ylabel, files,
+                                labels, moving_averages)
 
     else:
         print("Please use --average or --combine when using ngram > 1")
         exit(1)
 
 
-def perform_experiement(files, combine, sample_size, average=False, plot_labels=False, moving_averages=0):
+def perform_experiement(files, combine, average, sample_size,
+                        title, xlabel, ylabel,
+                        plot_labels=False, moving_averages=0):
+
     left_symbols, right_symbols, labels = get_values_from_file(files)
     if not plot_labels:
         labels = None
@@ -345,33 +352,50 @@ def perform_experiement(files, combine, sample_size, average=False, plot_labels=
         combined_strings = []
         for left, right in zip(left_symbols, right_symbols):
             combined_strings.append(combine_left_right(left, right))
-        compare_entropies(combined_strings, sample_size, files, "Graph of Entropy and Labels",labels, moving_averages)
+        compare_entropies(combined_strings, sample_size,
+                          title, xlabel, ylabel, files,
+                          labels, moving_averages)
     else:
         if average:
-            compare_entropies_average(left_symbols, right_symbols, sample_size, files, "Graph of Entropy and Labels", labels, moving_averages)
+            compare_entropies_average(left_symbols, right_symbols, sample_size,
+                                      title, xlabel, ylabel, files,
+                                      labels, moving_averages)
         else:
-            compare_entropies(left_symbols+right_symbols, sample_size, [x+"_LEFT" for x in files] + [x+"_RIGHT" for x in files], "Graph of Entropy and Labels", labels, moving_averages)
+            compare_entropies(left_symbols+right_symbols, sample_size,
+                              title, xlabel, ylabel,
+                              [x+"_LEFT" for x in files] +\
+                               [x+"_RIGHT" for x in files],
+                              labels, moving_averages)
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
-   OR: python3 detector.py <path_to_text_files> [options]
 
+        -h, --help          Display this help message
         --combine           Will combine the left and right hand to make a symbol set of size 64
         --sample_size       The number of samples to use to calculate entropy. Default is 64 for combine and 16 for normal
         --average           Averages the left and right entropies, Not applicable with --combine
         --ngram             The n-gram to use for entropy calculation, default is 1 (unigrams)
         --plot_labels       Will plot labels in the entropy graph
         --moving_averages   Compute and plot moving averages of entropy on top of the entropy. Default sample size is 25
+        --title             The title to use for the plot
+        --xlabel            The label to use for the x axis
+        --ylabel            the label to use for the y axis
             """
     if len(sys.argv) < 2:
         print(USAGE)
-        exit(0)
-    if len(sys.argv) > 9:
+        exit(1)
+    if len(sys.argv) > 15:
+        print(USAGE)
+        exit(1)
+
+    if sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(USAGE)
         exit(0)
+
     combine = "--combine" in sys.argv
     average = "--average" in sys.argv
     plot_labels = "--plot_labels" in sys.argv
+
     if "--moving_averages" in sys.argv:
         index = sys.argv.index("--moving_averages") + 1
         if index >= len(sys.argv):
@@ -388,21 +412,36 @@ if __name__ == "__main__":
     # By default script uses unigrams. If using --ngram, then ngram will be set
     # to user specified number.
     ngram = 1 if "--ngram" not in sys.argv else int(sys.argv[sys.argv.index("--ngram")+1])
+    title = "" if "--title" not in sys.argv else sys.argv[sys.argv.index("--title")+1]
+    xlabel = "" if "--xlabel" not in sys.argv else sys.argv[sys.argv.index("--xlabel")+1]
+    ylabel = "" if "--ylabel" not in sys.argv else sys.argv[sys.argv.index("--ylabel")+1]
     if combine:
         sample_size = 64 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
     else:
         sample_size = 16 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
 
+    # # TODO: Add the ability to set title, x and y label from cmdline
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):
-        if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]): # Check if we have another file
-            perform_experiement(sys.argv[1:3], combine, sample_size, average, plot_labels, moving_averages)
+        # Check if we have another file
+        if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]):
+            if ngram > 1:
+                print("Cannot use --ngram > 1 when using multiple files")
+                exit(1)
+            perform_experiement(sys.argv[1:3], combine, average, sample_size,
+                                title, xlabel, ylabel,
+                                plot_labels, moving_averages)
         else:# Else we can proceed with one file
             if ngram > 1:
-                perform_ngram_experiment(sys.argv[1:2], combine, sample_size, ngram, average, plot_labels, moving_averages)
+                perform_ngram_experiment(sys.argv[1:2], combine, average,
+                                         sample_size, ngram,
+                                         title, xlabel, ylabel,
+                                         plot_labels, moving_averages)
             else:
-                perform_experiement(sys.argv[1:2], combine, sample_size, average, plot_labels, moving_averages)
+                perform_experiement(sys.argv[1:2], combine, average,
+                                    sample_size, title, xlabel, ylabel,
+                                    plot_labels, moving_averages)
 
     else:
-        # We have a folder, so we handel it like a folder
-        perform_experiement([os.path.join(sys.argv[1], f) for f in os.listdir(sys.argv[1]) if os.path.join(sys.argv[1], f) and f.endswith(".txt")], combine, sample_size)
+        print(f"Use --help or -h to see how to use this script")
+        exit()

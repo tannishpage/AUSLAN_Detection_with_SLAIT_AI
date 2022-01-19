@@ -134,3 +134,4 @@ slaitai_entropy.py
 *.png
 *.jpg
 *.JPEG
+experiments/

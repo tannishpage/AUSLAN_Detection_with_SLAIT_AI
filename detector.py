@@ -226,7 +226,7 @@ def compare_entropies(strings, sample_size,
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.legend(legend)
-    fig.savefig(title+".png", dpi=100)
+    fig.savefig(title.replace(" ", "_")+".png", dpi=100)
     plt.show()
 
 def compare_entropies_average(left, right, sample_size,
@@ -250,10 +250,13 @@ def compare_entropies_average(left, right, sample_size,
         averages = exponential_moving_average(entropies, moving_averages)
         plt.plot(x, averages)
         legend += ["Moving Average"]
+    fig = plt.figure(1)
+    fig.set_size_inches((19.2, 10.8))
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.legend(legend)
+    fig.savefig(title.replace(" ", "_")+".png", dpi=100)
     plt.show()
 
 def compare_entropies_ngram_average(left, right, sample_size,
@@ -278,10 +281,13 @@ def compare_entropies_ngram_average(left, right, sample_size,
         averages = exponential_moving_average(entropies, moving_averages)
         plt.plot(x, averages)
         legend += ["Moving Average"]
+    fig = plt.figure(1)
+    fig.set_size_inches((19.2, 10.8))
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.legend(legend)
+    fig.savefig(title.replace(" ", "_")+".png", dpi=100)
     plt.show()
 
 def compare_entropies_ngram(strings, sample_size,
@@ -304,10 +310,13 @@ def compare_entropies_ngram(strings, sample_size,
         averages = exponential_moving_average(entropies, moving_averages)
         plt.plot(x, averages)
         legend += ["Moving Average"]
+    fig = plt.figure(1)
+    fig.set_size_inches((19.2, 10.8))
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.legend(legend)
+    fig.savefig(title.replace(" ", "_")+".png", dpi=100)
     plt.show()
 
 def perform_ngram_experiment(files, combine, average, sample_size, ngram,

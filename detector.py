@@ -179,6 +179,13 @@ def simple_moving_average(values, sample_size):
         removed_index += 1 # Increase index so we know the last removed value
     return moving_averages
 
+def exponential_moving_average(values, alpha):
+    # First value of moving avg is the first value in the series
+    moving_averages = [values[0]]
+    for value in values[1:]:
+        # Calculating simple moving average
+        moving_averages.append(moving_averages[-1] + (alpha*(value - moving_averages[-1])))
+    return moving_averages
 
 ############### Functions to run experiments ###############
 def main():
@@ -211,8 +218,8 @@ def compare_entropies(strings, sample_size,
             plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
-        averages = simple_moving_average(entropies, moving_averages)
-        plt.plot(x[0:-moving_averages], averages)
+        averages = exponential_moving_average(entropies, moving_averages)
+        plt.plot(x, averages)
         legend += ["Moving Average"]
     plt.title(title)
     plt.xlabel("String Location")
@@ -237,9 +244,9 @@ def compare_entropies_average(left, right, sample_size,
         if labels != None:
             plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
     if moving_averages != 0:
-        entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
-        averages = simple_moving_average(entropies, moving_averages)
-        plt.plot(x[0:-moving_averages], averages)
+        entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y_avg]
+        averages = exponential_moving_average(entropies, moving_averages)
+        plt.plot(x, averages)
         legend += ["Moving Average"]
     plt.title(title)
     plt.xlabel("String Location")
@@ -265,9 +272,9 @@ def compare_entropies_ngram_average(left, right, sample_size,
     if labels != None:
         plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
     if moving_averages != 0:
-        entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
-        averages = simple_moving_average(entropies, moving_averages)
-        plt.plot(x[0:-moving_averages], averages)
+        entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y_avg]
+        averages = exponential_moving_average(entropies, moving_averages)
+        plt.plot(x, averages)
         legend += ["Moving Average"]
     plt.title(title)
     plt.xlabel("Ngram Location")
@@ -291,12 +298,9 @@ def compare_entropies_ngram(strings, sample_size,
         plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
 
     if moving_averages != 0:
-        # TODO: Entropies contain nan, calculating moving average is resulting in nan
-        # Drop all Nans or make them 0 to fix issue
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
-        averages = simple_moving_average(entropies, moving_averages)
-        #print(averages)
-        plt.plot(x[0:-moving_averages], averages)
+        averages = exponential_moving_average(entropies, moving_averages)
+        plt.plot(x, averages)
         legend += ["Moving Average"]
     plt.title(title)
     plt.xlabel("Ngram Location")
@@ -374,8 +378,8 @@ if __name__ == "__main__":
             moving_averages = 25
         else:
             value = sys.argv[index]
-            if value.isnumeric():
-                moving_averages = int(value)
+            if "--" not in value:
+                moving_averages = float(value)
             else:
                 moving_averages = 25
     else:

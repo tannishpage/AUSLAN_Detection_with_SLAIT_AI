@@ -203,7 +203,6 @@ def main():
     plt.show()
 
 def compare_entropies(strings, sample_size,
-                        title, xlabel, ylabel,legend,
                         labels, moving_averages, plot_loc):
     ap = 0.0095
     bp = 4.0976
@@ -221,7 +220,6 @@ def compare_entropies(strings, sample_size,
         print(x, averages)
 
 def compare_entropies_average(left, right, sample_size,
-                              title, xlabel, ylabel,legend,
                               labels, moving_averages, plot_loc):
 
     ap = 0.0095
@@ -242,7 +240,6 @@ def compare_entropies_average(left, right, sample_size,
         print(x, averages)
 
 def compare_entropies_ngram_average(left, right, sample_size,
-                                    title, xlabel, ylabel,legend,
                                     labels, moving_averages, plot_loc):
 
     ap = 0.0095
@@ -264,7 +261,6 @@ def compare_entropies_ngram_average(left, right, sample_size,
         print(x, averages)
 
 def compare_entropies_ngram(strings, sample_size,
-                            title, xlabel, ylabel,legend,
                             labels, moving_averages, plot_loc):
 
     ap = 0.0095
@@ -284,7 +280,6 @@ def compare_entropies_ngram(strings, sample_size,
         print(x, averages)
 
 def perform_ngram_experiment(files, combine, average, sample_size, ngram,
-                             title, xlabel, ylabel,
                              plot_labels, moving_averages, plot_loc):
 
     left_symbols, right_symbols, labels = get_values_from_file(files)
@@ -300,13 +295,11 @@ def perform_ngram_experiment(files, combine, average, sample_size, ngram,
         right_ngram = String2NGramList(right_symbols, ngram)[0]
 
         compare_entropies_ngram_average(left_ngram, right_ngram, sample_size,
-                            title, xlabel, ylabel, files,
-                            labels, moving_averages, plot_loc)
+                                        labels, moving_averages, plot_loc)
     elif combine:
         combined_string = combine_left_right(left_symbols, right_symbols)
         combined_ngram = String2NGramList(combined_string, ngram)[0]
         compare_entropies_ngram(combined_ngram, sample_size,
-                                title, xlabel, ylabel, files,
                                 labels, moving_averages, plot_loc)
 
     else:
@@ -315,7 +308,6 @@ def perform_ngram_experiment(files, combine, average, sample_size, ngram,
 
 
 def perform_experiement(files, combine, average, sample_size,
-                        title, xlabel, ylabel,
                         plot_labels, moving_averages, plot_loc):
 
     left_symbols, right_symbols, labels = get_values_from_file(files)
@@ -326,34 +318,26 @@ def perform_experiement(files, combine, average, sample_size,
         for left, right in zip(left_symbols, right_symbols):
             combined_strings.append(combine_left_right(left, right))
         compare_entropies(combined_strings, sample_size,
-                          title, xlabel, ylabel, files,
                           labels, moving_averages, plot_loc)
     else:
         if average:
             compare_entropies_average(left_symbols, right_symbols, sample_size,
-                                      title, xlabel, ylabel, files,
                                       labels, moving_averages, plot_loc)
         else:
             compare_entropies(left_symbols+right_symbols, sample_size,
-                              title, xlabel, ylabel,
-                              [x+"_LEFT" for x in files] +\
-                               [x+"_RIGHT" for x in files],
                               labels, moving_averages, plot_loc)
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
 
         -h, --help          Display this help message
-        -s                  Saves plot to specified location
+        -s                  Saves data to specified location as a csv file
         --combine           Will combine the left and right hand to make a symbol set of size 64
         --sample_size       The number of samples to use to calculate entropy. Default is 64 for combine and 16 for normal
         --average           Averages the left and right entropies, Not applicable with --combine
         --ngram             The n-gram to use for entropy calculation, default is 1 (unigrams)
         --plot_labels       Will plot labels in the entropy graph
         --moving_averages   Compute and plot moving averages of entropy on top of the entropy. Default sample size is 25
-        --title             The title to use for the plot
-        --xlabel            The label to use for the x axis
-        --ylabel            the label to use for the y axis
 """
     if len(sys.argv) < 2:
         print(USAGE)
@@ -386,9 +370,6 @@ if __name__ == "__main__":
     # By default script uses unigrams. If using --ngram, then ngram will be set
     # to user specified number.
     ngram = 1 if "--ngram" not in sys.argv else int(sys.argv[sys.argv.index("--ngram")+1])
-    title = "" if "--title" not in sys.argv else sys.argv[sys.argv.index("--title")+1]
-    xlabel = "" if "--xlabel" not in sys.argv else sys.argv[sys.argv.index("--xlabel")+1]
-    ylabel = "" if "--ylabel" not in sys.argv else sys.argv[sys.argv.index("--ylabel")+1]
     plot_loc = "" if "-s" not in sys.argv else sys.argv[sys.argv.index("-s")+1]
 
     if combine:
@@ -410,12 +391,11 @@ if __name__ == "__main__":
             if ngram > 1:
                 perform_ngram_experiment(sys.argv[1:2], combine, average,
                                          sample_size, ngram,
-                                         title, xlabel, ylabel,
                                          plot_labels, moving_averages, plot_loc)
             else:
                 perform_experiement(sys.argv[1:2], combine, average,
-                                    sample_size, title, xlabel, ylabel,
-                                    plot_labels, moving_averages, plot_loc)
+                                    sample_size, plot_labels, moving_averages,
+                                    plot_loc)
 
     else:
         print(f"Use --help or -h to see how to use this script")

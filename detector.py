@@ -212,23 +212,13 @@ def compare_entropies(strings, sample_size,
         seg_labels = create_segments(labels[0], sample_size)
     for i, string in enumerate(strings):
         x, y = calculate_entropy(string, sample_size, ap, bp, cp)
-        plt.plot(x, y)
+        print(x, y)
         if labels != None:
-            plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
+            print(x, seg_labels)
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
         averages = exponential_moving_average(entropies, moving_averages)
-        plt.plot(x, averages)
-        legend += ["Moving Average"]
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()
+        print(x, averages)
 
 def compare_entropies_average(left, right, sample_size,
                               title, xlabel, ylabel,legend,
@@ -243,23 +233,13 @@ def compare_entropies_average(left, right, sample_size,
         x, y_l = calculate_entropy(l, sample_size, ap, bp, cp)
         x, y_r = calculate_entropy(r, sample_size, ap, bp, cp)
         y_avg = calculate_average(y_l, y_r)
-        plt.plot(x, y_avg)
+        print(x, y_avg)
         if labels != None:
-            plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
+            print(x, seg_labels)
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y_avg]
         averages = exponential_moving_average(entropies, moving_averages)
-        plt.plot(x, averages)
-        legend += ["Moving Average"]
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()
+        print(x, averages)
 
 def compare_entropies_ngram_average(left, right, sample_size,
                                     title, xlabel, ylabel,legend,
@@ -275,23 +255,13 @@ def compare_entropies_ngram_average(left, right, sample_size,
     x, y_r = calculate_ngram_entropy(right, sample_size, ap, bp, cp)
 
     y_avg = calculate_average(y_l, y_r)
-    plt.plot(x, y_avg)
+    print(x, y_avg)
     if labels != None:
-        plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
+        print(x, seg_labels)
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y_avg]
         averages = exponential_moving_average(entropies, moving_averages)
-        plt.plot(x, averages)
-        legend += ["Moving Average"]
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()
+        print(x, averages)
 
 def compare_entropies_ngram(strings, sample_size,
                             title, xlabel, ylabel,legend,
@@ -304,24 +274,14 @@ def compare_entropies_ngram(strings, sample_size,
         seg_labels = create_segments(labels, sample_size)
 
     x, y = calculate_ngram_entropy(strings, sample_size, ap, bp, cp)
-    plt.plot(x, y)
+    print(x, y)
     if labels != None:
-        plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
+        print(x, seg_labels)
 
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
         averages = exponential_moving_average(entropies, moving_averages)
-        plt.plot(x, averages)
-        legend += ["Moving Average"]
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()
+        print(x, averages)
 
 def perform_ngram_experiment(files, combine, average, sample_size, ngram,
                              title, xlabel, ylabel,

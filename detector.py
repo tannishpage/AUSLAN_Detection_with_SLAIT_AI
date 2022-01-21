@@ -8,6 +8,25 @@ import numpy
 import pandas as pd
 random.seed(128) # Helps repetability of experiments
 
+def check_cmd_arguments(arg, default, false_value):
+    arg_value = false_value # Setting the argument's value to the false value
+    # Checking if argument is in the sys args
+    if arg in sys.argv:
+        index = sys.argv.index(arg) + 1 # Grab the index of the value for arg
+        if index >= len(sys.argv):
+        # If the value isn't passed, set it to the default value
+            arg_value = default
+        else:
+            # We check that the value isn't another argument
+            value = sys.argv[index]
+            if "-" not in value:
+                arg_value = value # Assign the value
+            else:
+                arg_value = default # else we use use the default value
+
+    return arg_value
+
+
 def generate_random_seq(n, alphabets):
     """
     Generates a random string of text containing only alphabets
@@ -30,10 +49,12 @@ def generate_random_seq_with_probs(n, prob_dist):
 
     Parameters
         - n (int): The size of the string to generate
-        - prob_dist (dict{symbol:probability}): Probability distribution to follow
+        - prob_dist (dict{symbol:probability}): Probability distribution to
+                                                follow
     """
 
-    return random.choices(list(prob_dist.keys()), weights=list(prob_dist.values()), k=n)
+    return random.choices(list(prob_dist.keys()),
+                                weights=list(prob_dist.values()), k=n)
 
 
 def strip_everything_but_characters(text):
@@ -97,8 +118,9 @@ def calculate_ngram_entropy(string, sample_size, ap, bp, cp):
         most_freq = freq_dist[0][0]
         if type(most_freq) == type(tuple()):
             most_freq = list(most_freq)
-        entropies.append(FastEntropyNgram(sub_string, len(sub_string), most_freq,
-                                            len(freq_dist), ap, bp, cp)[0])
+        entropies.append(FastEntropyNgram(sub_string, len(sub_string),
+                                          most_freq,
+                                          len(freq_dist), ap, bp, cp)[0])
         #print(i+1, string[start:end+1])
         start = end
     return (range(sample_size, N, sample_size), entropies)
@@ -176,7 +198,8 @@ def simple_moving_average(values, sample_size):
     removed_index = 0 # The index that was removed from the sample
     for value in values[sample_size+1:]:
         # Calculating simple moving average
-        moving_averages.append(moving_averages[-1] + (value - values[removed_index])/sample_size)
+        moving_averages.append(moving_averages[-1] +\
+                                (value - values[removed_index])/sample_size)
         removed_index += 1 # Increase index so we know the last removed value
     return moving_averages
 
@@ -185,7 +208,8 @@ def exponential_moving_average(values, alpha):
     moving_averages = [values[0]]
     for value in values[1:]:
         # Calculating simple moving average
-        moving_averages.append(moving_averages[-1] + (alpha*(value - moving_averages[-1])))
+        moving_averages.append(moving_averages[-1] +\
+                                (alpha*(value - moving_averages[-1])))
     return moving_averages
 
 ############### Functions to run experiments ###############
@@ -378,28 +402,16 @@ if __name__ == "__main__":
     average = "--average" in sys.argv
     plot_labels = "--plot_labels" in sys.argv
 
-    if "--moving_averages" in sys.argv:
-        index = sys.argv.index("--moving_averages") + 1
-        if index >= len(sys.argv):
-            moving_averages = 25
-        else:
-            value = sys.argv[index]
-            if "--" not in value:
-                moving_averages = float(value)
-            else:
-                moving_averages = 25
-    else:
-        moving_averages = 0
-
+    moving_averages = float(check_cmd_arguments("--moving_averages", 0.15, 0))
     # By default script uses unigrams. If using --ngram, then ngram will be set
     # to user specified number.
-    ngram = 1 if "--ngram" not in sys.argv else int(sys.argv[sys.argv.index("--ngram")+1])
-    data_loc = "./data.csv" if "-s" not in sys.argv else sys.argv[sys.argv.index("-s")+1]
+    ngram = int(check_cmd_arguments("--ngram", 1, 1))
+    data_loc = check_cmd_arguments("-s", "./data.csv", "./data.csv")
 
     if combine:
-        sample_size = 64 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
+        sample_size = int(check_cmd_arguments("--sample_size", 64, 64))
     else:
-        sample_size = 16 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
+        sample_size = int(check_cmd_arguments("--sample_size", 16, 16))
 
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):

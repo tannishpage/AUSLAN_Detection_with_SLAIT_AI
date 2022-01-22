@@ -2,6 +2,7 @@ import pandas as pd
 import os
 import sys
 import matplotlib.pyplot as plt
+import pandas as pd
 from detector import check_cmd_arguments
 
 def get_files():
@@ -11,15 +12,18 @@ def get_files():
             
 
 def plotter(files, save, title, xlabel, ylabel, sep_lr):
-    """    fig = plt.figure(1)
+    fig = plt.figure(1)
     fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()"""
+    for file in files:
+        data = pd.read_csv(file)
+        plt.plot(data["Frame Number"], data["Entropy"])
+        plt.title(title)
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+        plt.legend(["Entropy"])
+        if save != "":
+            fig.savefig(save, dpi=100)
+        plt.show()
     pass
 
 if __name__ == "__main__":
@@ -33,6 +37,10 @@ if __name__ == "__main__":
         --ylabel        Label for y-Axis
         --sep_lr        Plot left and right hands seperately (Only if --average was used with detector)
 """
+
+    if len(sys.argv) < 2:
+        print(USAGE)
+        exit(1)
 
     if "--help" == sys.argv[1]:
         print(USAGE)
@@ -48,7 +56,7 @@ if __name__ == "__main__":
         print("--save: No path was passed")
         exit(1)
     
-    if not os.path.exists(os.path.base(save)):
+    if not os.path.exists(os.path.dirname(save)):
         print("--save: Path does not exist")
         exit(1)
 

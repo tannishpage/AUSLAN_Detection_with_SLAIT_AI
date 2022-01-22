@@ -9,9 +9,9 @@ def get_files():
     for i, arg in enumerate(sys.argv[1:]):
         if "--" in arg:
             return sys.argv[1:i+1]
-            
 
-def plotter(files, save, title, xlabel, ylabel, sep_lr):
+
+def plotter(files, save, title, xlabel, ylabel, sep_lr, hide):
     fig = plt.figure(1)
     fig.set_size_inches((19.2, 10.8))
     for file in files:
@@ -21,10 +21,10 @@ def plotter(files, save, title, xlabel, ylabel, sep_lr):
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.legend(["Entropy"])
-        if save != "":
+        if save != False:
             fig.savefig(save, dpi=100)
-        plt.show()
-    pass
+        if not hide:
+            plt.show()
 
 if __name__ == "__main__":
 
@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
         --help          Display this help message
         --save          Saves plot to specified location
+        --hide          doesn't show the plot
         --title         Title of the graph
         --xlabel        Label for x-Axis
         --ylabel        Label for y-Axis
@@ -64,5 +65,6 @@ if __name__ == "__main__":
     xlabel = check_cmd_arguments("--xlabel", "", "")
     ylabel = check_cmd_arguments("--ylabel", "", "")
     sep_lr = check_cmd_arguments("--sep_lr", True, False)
+    hide = check_cmd_arguments("--hide", True, False)
 
-    plotter(files, save, title, xlabel, ylabel, sep_lr)
+    plotter(files, save, title, xlabel, ylabel, sep_lr, hide)

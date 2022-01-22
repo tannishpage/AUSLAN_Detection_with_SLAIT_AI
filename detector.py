@@ -5,7 +5,27 @@ import sys
 import os
 import math
 import numpy
+import pandas as pd
 random.seed(128) # Helps repetability of experiments
+
+def check_cmd_arguments(arg, default, false_value):
+    arg_value = false_value # Setting the argument's value to the false value
+    # Checking if argument is in the sys args
+    if arg in sys.argv:
+        index = sys.argv.index(arg) + 1 # Grab the index of the value for arg
+        if index >= len(sys.argv):
+        # If the value isn't passed, set it to the default value
+            arg_value = default
+        else:
+            # We check that the value isn't another argument
+            value = sys.argv[index]
+            if "-" not in value:
+                arg_value = value # Assign the value
+            else:
+                arg_value = default # else we use use the default value
+
+    return arg_value
+
 
 def generate_random_seq(n, alphabets):
     """
@@ -29,10 +49,12 @@ def generate_random_seq_with_probs(n, prob_dist):
 
     Parameters
         - n (int): The size of the string to generate
-        - prob_dist (dict{symbol:probability}): Probability distribution to follow
+        - prob_dist (dict{symbol:probability}): Probability distribution to
+                                                follow
     """
 
-    return random.choices(list(prob_dist.keys()), weights=list(prob_dist.values()), k=n)
+    return random.choices(list(prob_dist.keys()),
+                                weights=list(prob_dist.values()), k=n)
 
 
 def strip_everything_but_characters(text):
@@ -96,8 +118,9 @@ def calculate_ngram_entropy(string, sample_size, ap, bp, cp):
         most_freq = freq_dist[0][0]
         if type(most_freq) == type(tuple()):
             most_freq = list(most_freq)
-        entropies.append(FastEntropyNgram(sub_string, len(sub_string), most_freq,
-                                            len(freq_dist), ap, bp, cp)[0])
+        entropies.append(FastEntropyNgram(sub_string, len(sub_string),
+                                          most_freq,
+                                          len(freq_dist), ap, bp, cp)[0])
         #print(i+1, string[start:end+1])
         start = end
     return (range(sample_size, N, sample_size), entropies)
@@ -175,7 +198,8 @@ def simple_moving_average(values, sample_size):
     removed_index = 0 # The index that was removed from the sample
     for value in values[sample_size+1:]:
         # Calculating simple moving average
-        moving_averages.append(moving_averages[-1] + (value - values[removed_index])/sample_size)
+        moving_averages.append(moving_averages[-1] +\
+                                (value - values[removed_index])/sample_size)
         removed_index += 1 # Increase index so we know the last removed value
     return moving_averages
 
@@ -184,7 +208,8 @@ def exponential_moving_average(values, alpha):
     moving_averages = [values[0]]
     for value in values[1:]:
         # Calculating simple moving average
-        moving_averages.append(moving_averages[-1] + (alpha*(value - moving_averages[-1])))
+        moving_averages.append(moving_averages[-1] +\
+                                (alpha*(value - moving_averages[-1])))
     return moving_averages
 
 ############### Functions to run experiments ###############
@@ -203,71 +228,62 @@ def main():
     plt.show()
 
 def compare_entropies(strings, sample_size,
-                        title, xlabel, ylabel,legend,
-                        labels, moving_averages, plot_loc):
+                      labels, moving_averages, data_loc):
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
+    data = dict()
     if labels != None:
         seg_labels = create_segments(labels[0], sample_size)
     for i, string in enumerate(strings):
         x, y = calculate_entropy(string, sample_size, ap, bp, cp)
-        plt.plot(x, y)
+        data["Frame Number"] = x
+        data["Entropy"] = y
         if labels != None:
-            plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
+            data["Label"] = seg_labels
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
         averages = exponential_moving_average(entropies, moving_averages)
-        plt.plot(x, averages)
-        legend += ["Moving Average"]
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()
+        data["EMA"] = averages
+
+    data_frame = pd.DataFrame(data)
+    data_frame.to_csv(data_loc)
+
 
 def compare_entropies_average(left, right, sample_size,
-                              title, xlabel, ylabel,legend,
-                              labels, moving_averages, plot_loc):
+                              labels, moving_averages, data_loc):
 
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
+    data = dict()
     if labels != None:
         seg_labels = create_segments(labels[0], sample_size)
     for l, r in zip(left, right):
         x, y_l = calculate_entropy(l, sample_size, ap, bp, cp)
         x, y_r = calculate_entropy(r, sample_size, ap, bp, cp)
         y_avg = calculate_average(y_l, y_r)
-        plt.plot(x, y_avg)
+        data["Frame Number"] = x
+        data["Left Entropy"] = y_l
+        data["Right Entropy"] = y_r
+        data["Entropy"] = y_avg
         if labels != None:
-            plt.plot(range(sample_size, len(labels[0]), sample_size), seg_labels, 'o')
+            data["Label"] = seg_labels
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y_avg]
         averages = exponential_moving_average(entropies, moving_averages)
-        plt.plot(x, averages)
-        legend += ["Moving Average"]
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()
+        data["EMA"] = averages
+
+    data_frame = pd.DataFrame(data)
+    data_frame.to_csv(data_loc)
 
 def compare_entropies_ngram_average(left, right, sample_size,
-                                    title, xlabel, ylabel,legend,
-                                    labels, moving_averages, plot_loc):
+                                    labels, moving_averages, data_loc):
 
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
+    data = dict()
     if labels != None:
         seg_labels = create_segments(labels, sample_size)
 
@@ -275,57 +291,44 @@ def compare_entropies_ngram_average(left, right, sample_size,
     x, y_r = calculate_ngram_entropy(right, sample_size, ap, bp, cp)
 
     y_avg = calculate_average(y_l, y_r)
-    plt.plot(x, y_avg)
+    data["Frame Number"] = x
+    data["Left Entropy"] = y_l
+    data["Right Entropy"] = y_r
+    data["Entropy"] = y_avg
     if labels != None:
-        plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
+        data["Label"] = seg_labels
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y_avg]
         averages = exponential_moving_average(entropies, moving_averages)
-        plt.plot(x, averages)
-        legend += ["Moving Average"]
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()
+        data["EMA"] = averages
 
+    data_frame = pd.DataFrame(data)
+    data_frame.to_csv(data_loc)
 def compare_entropies_ngram(strings, sample_size,
-                            title, xlabel, ylabel,legend,
-                            labels, moving_averages, plot_loc):
+                            labels, moving_averages, data_loc):
 
     ap = 0.0095
     bp = 4.0976
     cp = 3.9841
+    data = dict()
     if labels != None:
         seg_labels = create_segments(labels, sample_size)
 
     x, y = calculate_ngram_entropy(strings, sample_size, ap, bp, cp)
-    plt.plot(x, y)
+    data["Frame Number"] = x
+    data["Entropy"] = y
     if labels != None:
-        plt.plot(range(sample_size, len(labels), sample_size), seg_labels, 'o')
+        data["Label"] = seg_labels
 
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y]
         averages = exponential_moving_average(entropies, moving_averages)
-        plt.plot(x, averages)
-        legend += ["Moving Average"]
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(title)
-    plt.xlabel(xlabel)
-    plt.ylabel(ylabel)
-    plt.legend(legend)
-    if plot_loc != "":
-        fig.savefig(plot_loc, dpi=100)
-    plt.show()
+        data["EMA"] = averages
 
+    data_frame = pd.DataFrame(data)
+    data_frame.to_csv(data_loc)
 def perform_ngram_experiment(files, combine, average, sample_size, ngram,
-                             title, xlabel, ylabel,
-                             plot_labels, moving_averages, plot_loc):
+                             plot_labels, moving_averages, data_loc):
 
     left_symbols, right_symbols, labels = get_values_from_file(files)
     left_symbols = "".join(left_symbols[0])
@@ -340,14 +343,12 @@ def perform_ngram_experiment(files, combine, average, sample_size, ngram,
         right_ngram = String2NGramList(right_symbols, ngram)[0]
 
         compare_entropies_ngram_average(left_ngram, right_ngram, sample_size,
-                            title, xlabel, ylabel, files,
-                            labels, moving_averages, plot_loc)
+                                        labels, moving_averages, data_loc)
     elif combine:
         combined_string = combine_left_right(left_symbols, right_symbols)
         combined_ngram = String2NGramList(combined_string, ngram)[0]
         compare_entropies_ngram(combined_ngram, sample_size,
-                                title, xlabel, ylabel, files,
-                                labels, moving_averages, plot_loc)
+                                labels, moving_averages, data_loc)
 
     else:
         print("Please use --average or --combine when using ngram > 1")
@@ -355,8 +356,7 @@ def perform_ngram_experiment(files, combine, average, sample_size, ngram,
 
 
 def perform_experiement(files, combine, average, sample_size,
-                        title, xlabel, ylabel,
-                        plot_labels, moving_averages, plot_loc):
+                        plot_labels, moving_averages, data_loc):
 
     left_symbols, right_symbols, labels = get_values_from_file(files)
     if not plot_labels:
@@ -366,34 +366,26 @@ def perform_experiement(files, combine, average, sample_size,
         for left, right in zip(left_symbols, right_symbols):
             combined_strings.append(combine_left_right(left, right))
         compare_entropies(combined_strings, sample_size,
-                          title, xlabel, ylabel, files,
-                          labels, moving_averages, plot_loc)
+                          labels, moving_averages, data_loc)
     else:
         if average:
             compare_entropies_average(left_symbols, right_symbols, sample_size,
-                                      title, xlabel, ylabel, files,
-                                      labels, moving_averages, plot_loc)
+                                      labels, moving_averages, data_loc)
         else:
             compare_entropies(left_symbols+right_symbols, sample_size,
-                              title, xlabel, ylabel,
-                              [x+"_LEFT" for x in files] +\
-                               [x+"_RIGHT" for x in files],
-                              labels, moving_averages, plot_loc)
+                              labels, moving_averages, data_loc)
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 detector.py <path_to_text_file> [<path_to_text_file>] [options]
 
         -h, --help          Display this help message
-        -s                  Saves plot to specified location
+        -s                  Saves data to specified location as a csv file
         --combine           Will combine the left and right hand to make a symbol set of size 64
         --sample_size       The number of samples to use to calculate entropy. Default is 64 for combine and 16 for normal
         --average           Averages the left and right entropies, Not applicable with --combine
         --ngram             The n-gram to use for entropy calculation, default is 1 (unigrams)
         --plot_labels       Will plot labels in the entropy graph
         --moving_averages   Compute and plot moving averages of entropy on top of the entropy. Default sample size is 25
-        --title             The title to use for the plot
-        --xlabel            The label to use for the x axis
-        --ylabel            the label to use for the y axis
 """
     if len(sys.argv) < 2:
         print(USAGE)
@@ -410,31 +402,16 @@ if __name__ == "__main__":
     average = "--average" in sys.argv
     plot_labels = "--plot_labels" in sys.argv
 
-    if "--moving_averages" in sys.argv:
-        index = sys.argv.index("--moving_averages") + 1
-        if index >= len(sys.argv):
-            moving_averages = 25
-        else:
-            value = sys.argv[index]
-            if "--" not in value:
-                moving_averages = float(value)
-            else:
-                moving_averages = 25
-    else:
-        moving_averages = 0
-
+    moving_averages = float(check_cmd_arguments("--moving_averages", 0.15, 0))
     # By default script uses unigrams. If using --ngram, then ngram will be set
     # to user specified number.
-    ngram = 1 if "--ngram" not in sys.argv else int(sys.argv[sys.argv.index("--ngram")+1])
-    title = "" if "--title" not in sys.argv else sys.argv[sys.argv.index("--title")+1]
-    xlabel = "" if "--xlabel" not in sys.argv else sys.argv[sys.argv.index("--xlabel")+1]
-    ylabel = "" if "--ylabel" not in sys.argv else sys.argv[sys.argv.index("--ylabel")+1]
-    plot_loc = "" if "-s" not in sys.argv else sys.argv[sys.argv.index("-s")+1]
+    ngram = int(check_cmd_arguments("--ngram", 1, 1))
+    data_loc = check_cmd_arguments("-s", "./data.csv", "./data.csv")
 
     if combine:
-        sample_size = 64 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
+        sample_size = int(check_cmd_arguments("--sample_size", 64, 64))
     else:
-        sample_size = 16 if "--sample_size" not in sys.argv else int(sys.argv[sys.argv.index("--sample_size")+1])
+        sample_size = int(check_cmd_arguments("--sample_size", 16, 16))
 
     # Check if the first path is a file or a folder
     if os.path.isfile(sys.argv[1]):
@@ -445,17 +422,16 @@ if __name__ == "__main__":
                 exit(1)
             perform_experiement(sys.argv[1:3], combine, average, sample_size,
                                 title, xlabel, ylabel,
-                                plot_labels, moving_averages, plot_loc)
+                                plot_labels, moving_averages, data_loc)
         else:# Else we can proceed with one file
             if ngram > 1:
                 perform_ngram_experiment(sys.argv[1:2], combine, average,
                                          sample_size, ngram,
-                                         title, xlabel, ylabel,
-                                         plot_labels, moving_averages, plot_loc)
+                                         plot_labels, moving_averages, data_loc)
             else:
                 perform_experiement(sys.argv[1:2], combine, average,
-                                    sample_size, title, xlabel, ylabel,
-                                    plot_labels, moving_averages, plot_loc)
+                                    sample_size, plot_labels, moving_averages,
+                                    data_loc)
 
     else:
         print(f"Use --help or -h to see how to use this script")

@@ -9,6 +9,7 @@ def get_files():
     for i, arg in enumerate(sys.argv[1:]):
         if "--" in arg:
             return sys.argv[1:i+1]
+    return sys.argv[1:]
 
 
 def plotter(files, save, title, xlabel, ylabel, sep_lr, hide):

@@ -14,14 +14,30 @@ def get_files():
 def plotter(files, save, title, xlabel, ylabel, sep_lr, hide):
     fig = plt.figure(1)
     fig.set_size_inches((19.2, 10.8))
+    if sep_lr:
+        legend = []
     for file in files:
         data = pd.read_csv(file)
-        plt.plot(data["Frame Number"], data["Entropy"])
+        if sep_lr:
+            legend += [file+"_LEFT", file+"_RIGHT"]
+            left = data.get("Left Entropy", False)
+            right = data.get("Right Entropy", False)
+            if type(left) == type(bool()) or type(right) == type(bool()):
+                print(f"{file} doesn't contain Left or Right entropy! Quitting")
+                print("Please run detector.py with the --average flag")
+                exit(1)
+            plt.plot(data["Frame Number"], left)
+            plt.plot(data["Frame Number"], right)
+        else:
+            plt.plot(data["Frame Number"], data["Entropy"])
 
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.legend(files)
+    if sep_lr:
+        plt.legend(legend)
+    else:
+        plt.legend(files)
     if save != False:
         fig.savefig(save, dpi=100)
     if not hide:

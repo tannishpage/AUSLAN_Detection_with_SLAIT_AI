@@ -17,14 +17,15 @@ def plotter(files, save, title, xlabel, ylabel, sep_lr, hide):
     for file in files:
         data = pd.read_csv(file)
         plt.plot(data["Frame Number"], data["Entropy"])
-        plt.title(title)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
-        plt.legend(["Entropy"])
-        if save != False:
-            fig.savefig(save, dpi=100)
-        if not hide:
-            plt.show()
+
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend(files)
+    if save != False:
+        fig.savefig(save, dpi=100)
+    if not hide:
+        plt.show()
 
 if __name__ == "__main__":
 

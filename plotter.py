@@ -51,13 +51,13 @@ if __name__ == "__main__":
     if files == None:
         print("No file(s) have been passed, use --help for instructions")
         exit(1)
-    
+
     save = check_cmd_arguments("--save", "NoPath", False)
     if save == "NoPath":
         print("--save: No path was passed")
         exit(1)
-    
-    if not os.path.exists(os.path.dirname(save)):
+
+    if save and not os.path.exists(os.path.dirname(save)):
         print("--save: Path does not exist")
         exit(1)
 

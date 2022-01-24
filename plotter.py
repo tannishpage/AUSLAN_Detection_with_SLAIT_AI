@@ -43,6 +43,24 @@ def plotter(files, save, title, xlabel, ylabel, sep_lr, hide):
     if not hide:
         plt.show()
 
+def sub_plotter(files, save, title, xlabel, ylabel, hide, h, w):
+    fig = plt.figure(1)
+    fig.set_size_inches((19.2, 10.8))
+    plt.title(title)
+    for i, file in enumerate(files):
+        plt.subplot(h, w, i+1)
+        data = pd.read_csv(file)
+        plt.plot(data["Frame Number"], data["Entropy"])
+        plt.legend([file])
+        plt.xlabel(xlabel)
+        plt.ylabel(ylabel)
+
+    if save != False:
+        fig.savefig(save, dpi=100)
+    if not hide:
+        plt.show()
+
+
 if __name__ == "__main__":
 
     USAGE = """Usage: python3 plotter.py <path_to_entropy_csv> [<path_to_entropy_csv>..] [options]
@@ -54,6 +72,7 @@ if __name__ == "__main__":
         --xlabel        Label for x-Axis
         --ylabel        Label for y-Axis
         --sep_lr        Plot left and right hands seperately (Only if --average was used with detector)
+        --subplot       Plots all the files in subplots (must pass height and width)
 """
 
     if len(sys.argv) < 2:
@@ -83,5 +102,17 @@ if __name__ == "__main__":
     ylabel = check_cmd_arguments("--ylabel", "", "")
     sep_lr = check_cmd_arguments("--sep_lr", True, False)
     hide = check_cmd_arguments("--hide", True, False)
+    subplot = check_cmd_arguments("--subplot", "NoHW", False)
 
-    plotter(files, save, title, xlabel, ylabel, sep_lr, hide)
+    if subplot == "NoHW":
+        print("--subplot: No height and width passed.")
+        print("--subplot: Pass height and width like; --subplot \"H:W\" ")
+        exit(1)
+
+    if subplot != False:
+        subplot = subplot.split(":")
+        h = int(subplot[0])
+        w = int(subplot[1])
+        sub_plotter(files, save, title, xlabel, ylabel, hide, h, w)
+    else:
+        plotter(files, save, title, xlabel, ylabel, sep_lr, hide)

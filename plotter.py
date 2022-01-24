@@ -12,7 +12,7 @@ def get_files():
     return sys.argv[1:]
 
 
-def plotter(files, save, title, xlabel, ylabel, sep_lr, hide):
+def plotter(files, save, title, xlabel, ylabel, key_to_plot, sep_lr, hide):
     fig = plt.figure(1)
     fig.set_size_inches((19.2, 10.8))
     if sep_lr:
@@ -30,7 +30,7 @@ def plotter(files, save, title, xlabel, ylabel, sep_lr, hide):
             plt.plot(data["Frame Number"], left)
             plt.plot(data["Frame Number"], right)
         else:
-            plt.plot(data["Frame Number"], data["Entropy"])
+            plt.plot(data["Frame Number"], data[key_to_plot])
 
     plt.title(title)
     plt.xlabel(xlabel)
@@ -44,14 +44,14 @@ def plotter(files, save, title, xlabel, ylabel, sep_lr, hide):
     if not hide:
         plt.show()
 
-def sub_plotter(files, save, title, xlabel, ylabel, hide, h, w):
+def sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w):
     fig = plt.figure(1)
     fig.set_size_inches((19.2, 10.8))
     plt.title(title)
     for i, file in enumerate(files):
         plt.subplot(h, w, i+1)
         data = pd.read_csv(file)
-        plt.plot(data["Frame Number"], data["Entropy"])
+        plt.plot(data["Frame Number"], data[key_to_plot])
         plt.legend([file])
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
@@ -74,6 +74,7 @@ if __name__ == "__main__":
         --ylabel        Label for y-Axis
         --sep_lr        Plot left and right hands seperately (Only if --average was used with detector)
         --subplot       Plots all the files in subplots (must pass height and width)
+        --EMA           Plots the Entropy's Exponential Moving Average instead (Only if --moving_averages was used with detector)
 """
 
     if len(sys.argv) < 2:
@@ -104,6 +105,7 @@ if __name__ == "__main__":
     sep_lr = check_cmd_arguments("--sep_lr", True, False)
     hide = check_cmd_arguments("--hide", True, False)
     subplot = check_cmd_arguments("--subplot", "NoHW", False)
+    key_to_plot = check_cmd_arguments("--EMA", "EMA", "Entropy")
 
     if subplot == "NoHW":
         print("--subplot: No height and width passed.")
@@ -114,6 +116,6 @@ if __name__ == "__main__":
         subplot = subplot.split(":")
         h = int(subplot[0])
         w = int(subplot[1])
-        sub_plotter(files, save, title, xlabel, ylabel, hide, h, w)
+        sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w)
     else:
-        plotter(files, save, title, xlabel, ylabel, sep_lr, hide)
+        plotter(files, save, title, xlabel, ylabel, key_to_plot, sep_lr, hide)

@@ -147,7 +147,7 @@ def get_symbols(key, file_name):
     file = open(file_name, 'r')
     for line in file.readlines():
         line = line.rstrip()
-        if line.startswith(key):
+        if line.startswith(key) or (key in line.split(":")[0]):
             values = line.split(":")[1].split(",")
             return values
 

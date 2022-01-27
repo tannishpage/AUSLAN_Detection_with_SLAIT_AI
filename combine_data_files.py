@@ -14,7 +14,7 @@ def combine(data_files, output_dir, write):
         left_hand = get_symbols("left", file)
         right_hand = get_symbols("right", file)
         frame_number = get_symbols("frame", file)
-        print(f"File has {frame_number[-1]} frames")
+        print(f"File has {len(frame_number)} frames")
         all_labels += label
         all_left_hand += left_hand
         all_right_hand += right_hand
@@ -83,6 +83,7 @@ def main():
         print(USAGE)
         exit(1)
 
+    print(sys.argv)
     randomize = "--randomize" in sys.argv
     seed_flag = "--seed" in sys.argv
     interleave = "--interleave" in sys.argv

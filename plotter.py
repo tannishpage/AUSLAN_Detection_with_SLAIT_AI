@@ -61,6 +61,33 @@ def sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w):
     if not hide:
         plt.show()
 
+def seps_plotter_single_file(file, save, title, xlabel, ylabel, key_to_plot, hide, seps):
+    data = pd.read_csv(file)
+    step_size = int(seps[-1])
+    print("Step Size:", step_size)
+    fig = plt.figure(1)
+    fig.set_size_inches((19.2, 10.8))
+    start = 0
+    start_index = 0
+    legend = []
+    for i, sep in enumerate(seps[:-1]):
+        end = start + int(sep)
+        end_index = start_index + len(range(start, end, step_size))
+        plt.plot(data["Frame Number"][start_index:end_index], data[key_to_plot][start_index:end_index])
+        start = range(start, end, step_size)[-1]
+        start_index = end_index
+        legend.append("Sequence " + str(i))
+
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.legend(legend)
+    if save != False:
+        fig.savefig(save, dpi=100)
+    if not hide:
+        plt.show()
+
+
 
 if __name__ == "__main__":
 
@@ -75,6 +102,7 @@ if __name__ == "__main__":
         --sep_lr        Plot left and right hands seperately (Only if --average was used with detector)
         --subplot       Plots all the files in subplots (must pass height and width)
         --EMA           Plots the Entropy's Exponential Moving Average instead (Only if --moving_averages was used with detector)
+        --seps          Seperates a sequence and plots them
 """
 
     if len(sys.argv) < 2:
@@ -106,16 +134,25 @@ if __name__ == "__main__":
     hide = check_cmd_arguments("--hide", True, False)
     subplot = check_cmd_arguments("--subplot", "NoHW", False)
     key_to_plot = check_cmd_arguments("--EMA", "EMA", "Entropy")
-
+    seps = check_cmd_arguments("--seps", "NoParams", False)
     if subplot == "NoHW":
         print("--subplot: No height and width passed.")
         print("--subplot: Pass height and width like; --subplot \"H:W\" ")
         exit(1)
+
+    if seps == "NoParams":
+        print("--seps: No lengths passed")
+        print("--seps: Pass the length of each sequence to seperate")
+        print("--seps: Example \"Length1:Length2:...:step_size\"")
+        exit(1)
+
 
     if subplot != False:
         subplot = subplot.split(":")
         h = int(subplot[0])
         w = int(subplot[1])
         sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w)
+    elif seps != False:
+        seps_plotter_single_file(files[0], save, title, xlabel, ylabel, key_to_plot, hide, seps.split(":"))
     else:
         plotter(files, save, title, xlabel, ylabel, key_to_plot, sep_lr, hide)

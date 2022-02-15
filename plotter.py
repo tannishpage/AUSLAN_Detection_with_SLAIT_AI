@@ -73,7 +73,7 @@ def seps_plotter_single_file(file, save, title, xlabel, ylabel, key_to_plot, hid
     for i, sep in enumerate(seps[:-1]):
         end = start + int(sep)
         end_index = start_index + len(range(start, end, step_size))
-        plt.plot(data["Frame Number"][start_index:end_index], data[key_to_plot][start_index:end_index])
+        plt.plot(data["Frame Number"][start_index:end_index+1], data[key_to_plot][start_index:end_index+1])
         start = range(start, end, step_size)[-1]
         start_index = end_index
         legend.append("Sequence " + str(i))

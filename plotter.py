@@ -4,6 +4,7 @@ import sys
 import matplotlib.pyplot as plt
 import pandas as pd
 from detector import check_cmd_arguments
+from matplotlib.animation import FuncAnimation
 
 def get_files():
     for i, arg in enumerate(sys.argv[1:]):
@@ -88,6 +89,49 @@ def seps_plotter_single_file(file, save, title, xlabel, ylabel, key_to_plot, hid
         plt.show()
 
 
+def animated_plotter(files, save, title, xlabel, ylabel, key_to_plot, sep_lr, hide):
+    fig, ax = plt.subplots()
+    fig.set_size_inches((19.2, 10.8))
+    if sep_lr:
+        legend = []
+    for file in files:
+        data = pd.read_csv(file)
+        if sep_lr:
+            legend += [file+"_LEFT", file+"_RIGHT"]
+            left = data.get("Left Entropy", False)
+            right = data.get("Right Entropy", False)
+            if type(left) == type(bool()) or type(right) == type(bool()):
+                print(f"{file} doesn't contain Left or Right entropy! Quitting")
+                print("Please run detector.py with the --average flag")
+                exit(1)
+            #plt.plot(data["Frame Number"], left)
+            #plt.plot(data["Frame Number"], right)
+        else:
+            #ax.title = title
+            #ax.xlabel(xlabel)
+            #ax.ylabel(ylabel)
+            print(len(data["Frame Number"]))
+            animation = FuncAnimation(fig, animator, frames=len(data["Frame Number"]), interval=1000, repeat=False, fargs=(data["Frame Number"], data[key_to_plot], data["Entropy"], ax))
+            animation.save("demo_entropy.mp4")
+
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    if sep_lr:
+        plt.legend(legend)
+    else:
+        plt.legend(files)
+    if save != False:
+        fig.savefig(save, dpi=100)
+    if not hide:
+        plt.show()
+
+def animator(i, x, y1, y2, ax):
+    ax.clear()
+    ax.legend(["EMA", "Entropy"])
+    ax.plot(x[0:i], y1[0:i], ":")
+    ax.plot(x[0:i], y2[0:i])
+    print(i/227 * 100)
 
 if __name__ == "__main__":
 
@@ -103,6 +147,7 @@ if __name__ == "__main__":
         --subplot       Plots all the files in subplots (must pass height and width)
         --EMA           Plots the Entropy's Exponential Moving Average instead (Only if --moving_averages was used with detector)
         --seps          Seperates a sequence and plots them
+        --animated      Creates an animated plot of the data passed
 """
 
     if len(sys.argv) < 2:
@@ -135,6 +180,7 @@ if __name__ == "__main__":
     subplot = check_cmd_arguments("--subplot", "NoHW", False)
     key_to_plot = check_cmd_arguments("--EMA", "EMA", "Entropy")
     seps = check_cmd_arguments("--seps", "NoParams", False)
+    animate = check_cmd_arguments("--animated", True, False)
     if subplot == "NoHW":
         print("--subplot: No height and width passed.")
         print("--subplot: Pass height and width like; --subplot \"H:W\" ")
@@ -154,5 +200,7 @@ if __name__ == "__main__":
         sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w)
     elif seps != False:
         seps_plotter_single_file(files[0], save, title, xlabel, ylabel, key_to_plot, hide, seps.split(":"))
+    elif animate == True:
+        animated_plotter(files, save, title, xlabel, ylabel, key_to_plot, sep_lr, hide)
     else:
         plotter(files, save, title, xlabel, ylabel, key_to_plot, sep_lr, hide)

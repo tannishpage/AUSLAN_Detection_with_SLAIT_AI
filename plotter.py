@@ -64,7 +64,7 @@ def sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w):
     if not hide:
         plt.show()
 
-def seps_plotter_single_file(files, save, title, xlabel, ylabel, key_to_plot, hide, seps):
+def seps_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, seps):
     colors = [(random.uniform(0, 1),
                random.uniform(0, 1),
                random.uniform(0, 1)) for _ in range(0, len(seps))]

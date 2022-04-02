@@ -151,6 +151,22 @@ def get_symbols(key, file_name):
             values = line.split(":")[1].split(",")
             return values
 
+def get_values_from_csv(files):
+    symbols_left = []
+    symbols_right = []
+    labels = []
+
+    for file in files:
+        data = pd.read_csv(file)
+
+        left = list(data["Left"])
+        right = list(data["Right"])
+        symbols_left.append(left)
+        symbols_right.append(right)
+
+    return symbols_left, symbols_right
+
+
 def get_values_from_file(files):
     """
     Takes a list of files and returns a tuple of the left and right symbols
@@ -327,16 +343,21 @@ def compare_entropies_ngram(strings, sample_size,
 
     data_frame = pd.DataFrame(data)
     data_frame.to_csv(data_loc)
+
 def perform_ngram_experiment(files, combine, average, sample_size, ngram,
                              plot_labels, moving_averages, data_loc):
 
-    left_symbols, right_symbols, labels = get_values_from_file(files)
+    if (files[0].endswith(".csv")):
+        left_symbols, right_symbols = get_values_from_csv(files)
+    else:
+        left_symbols, right_symbols, labels = get_values_from_file(files)
     left_symbols = "".join(left_symbols[0])
     right_symbols = "".join(right_symbols[0])
-    labels = labels[0]
 
     if not plot_labels:
         labels = None
+    else:
+        labels = labels[0]
 
     if average:
         left_ngram = String2NGramList(left_symbols, ngram)[0]
@@ -358,7 +379,10 @@ def perform_ngram_experiment(files, combine, average, sample_size, ngram,
 def perform_experiement(files, combine, average, sample_size,
                         plot_labels, moving_averages, data_loc):
 
-    left_symbols, right_symbols, labels = get_values_from_file(files)
+    if (files[0].endswith(".csv")):
+        left_symbols, right_symbols = get_values_from_csv(files)
+    else:
+        left_symbols, right_symbols, labels = get_values_from_file(files)
     if not plot_labels:
         labels = None
     if combine:
@@ -384,7 +408,7 @@ if __name__ == "__main__":
         --sample_size       The number of samples to use to calculate entropy. Default is 64 for combine and 16 for normal
         --average           Averages the left and right entropies, Not applicable with --combine
         --ngram             The n-gram to use for entropy calculation, default is 1 (unigrams)
-        --plot_labels       Will plot labels in the entropy graph
+        --plot_labels       Will plot labels in the entropy graph can't use with csv files
         --moving_averages   Compute and plot moving averages of entropy on top of the entropy. Default sample size is 25
 """
     if len(sys.argv) < 2:

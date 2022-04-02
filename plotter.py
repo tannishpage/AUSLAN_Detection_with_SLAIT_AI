@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from detector import check_cmd_arguments
 from matplotlib.animation import FuncAnimation
+import random
+random.seed(4096)
 
 def get_files():
     for i, arg in enumerate(sys.argv[1:]):
@@ -62,22 +64,28 @@ def sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w):
     if not hide:
         plt.show()
 
-def seps_plotter_single_file(file, save, title, xlabel, ylabel, key_to_plot, hide, seps):
-    data = pd.read_csv(file)
-    step_size = int(seps[-1])
-    print("Step Size:", step_size)
-    fig = plt.figure(1)
-    fig.set_size_inches((19.2, 10.8))
-    start = 0
-    start_index = 0
-    legend = []
-    for i, sep in enumerate(seps[:-1]):
-        end = start + int(sep)
-        end_index = start_index + len(range(start, end, step_size))
-        plt.plot(data["Frame Number"][start_index:end_index+1], data[key_to_plot][start_index:end_index+1])
-        start = range(start, end, step_size)[-1]
-        start_index = end_index
-        legend.append("Sequence " + str(i))
+def seps_plotter_single_file(files, save, title, xlabel, ylabel, key_to_plot, hide, seps):
+    colors = [(random.uniform(0, 1),
+               random.uniform(0, 1),
+               random.uniform(0, 1)) for _ in range(0, len(seps))]
+    for file in files:
+        data = pd.read_csv(file)
+        step_size = int(seps[-1])
+        print("Step Size:", step_size)
+        fig = plt.figure(1)
+        fig.set_size_inches((19.2, 10.8))
+        start = 0
+        start_index = 0
+        legend = []
+        for i, sep in enumerate(seps[:-1]):
+            end = start + int(sep)
+            end_index = start_index + len(range(start, end, step_size))
+            plt.plot(data["Frame Number"][start_index:end_index+1],
+                     data[key_to_plot][start_index:end_index+1],
+                     color=colors[i])
+            start = range(start, end, step_size)[-1]
+            start_index = end_index
+            legend.append("Sequence " + str(i))
 
     plt.title(title)
     plt.xlabel(xlabel)
@@ -199,7 +207,7 @@ if __name__ == "__main__":
         w = int(subplot[1])
         sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w)
     elif seps != False:
-        seps_plotter_single_file(files[0], save, title, xlabel, ylabel, key_to_plot, hide, seps.split(":"))
+        seps_plotter_single_file(files, save, title, xlabel, ylabel, key_to_plot, hide, seps.split(":"))
     elif animate == True:
         animated_plotter(files, save, title, xlabel, ylabel, key_to_plot, sep_lr, hide)
     else:

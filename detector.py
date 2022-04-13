@@ -26,6 +26,11 @@ def check_cmd_arguments(arg, default, false_value):
 
     return arg_value
 
+def get_files():
+    for i, arg in enumerate(sys.argv[1:]):
+        if "--" in arg:
+            return sys.argv[1:i+1]
+    return sys.argv[1:]
 
 def generate_random_seq(n, alphabets):
     """
@@ -97,6 +102,8 @@ def calculate_entropy(string, sample_size, ap, bp, cp):
     N = len(string)
     entropies = []
     start = 0
+    if sample_size == -1:
+        sample_size = len(string)
     for i, end in enumerate(range(sample_size, N, sample_size)):
         sub_string = string[start:end+1]
         freq_dist = sorted_freq_dist(sub_string)
@@ -349,8 +356,10 @@ def perform_ngram_experiment(files, combine, average, sample_size, ngram,
 
     if (files[0].endswith(".csv")):
         left_symbols, right_symbols = get_values_from_csv(files)
+        data_loc = data_loc.format(files[0].replace(".csv", "_Entropy"))
     else:
         left_symbols, right_symbols, labels = get_values_from_file(files)
+        data_loc = data_loc.format(files[0].replace(".txt", "_Entropy"))
     left_symbols = "".join(left_symbols[0])
     right_symbols = "".join(right_symbols[0])
 
@@ -381,8 +390,10 @@ def perform_experiement(files, combine, average, sample_size,
 
     if (files[0].endswith(".csv")):
         left_symbols, right_symbols = get_values_from_csv(files)
+        data_loc = data_loc.format(files[0].replace(".csv", "_Entropy"))
     else:
         left_symbols, right_symbols, labels = get_values_from_file(files)
+        data_loc = data_loc.format(files[0].replace(".txt", "_Entropy"))
     if not plot_labels:
         labels = None
     if combine:
@@ -414,9 +425,6 @@ if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(USAGE)
         exit(1)
-    if len(sys.argv) > 17:
-        print(USAGE)
-        exit(1)
 
     if sys.argv[1] == "-h" or sys.argv[1] == "--help":
         print(USAGE)
@@ -430,30 +438,33 @@ if __name__ == "__main__":
     # By default script uses unigrams. If using --ngram, then ngram will be set
     # to user specified number.
     ngram = int(check_cmd_arguments("--ngram", 1, 1))
-    data_loc = check_cmd_arguments("-s", "./data.csv", "./data.csv")
+    data_loc = check_cmd_arguments("-s", "{}.csv", "./data.csv")
 
     if combine:
-        sample_size = int(check_cmd_arguments("--sample_size", 64, 64))
+        sample_size = int(check_cmd_arguments("--sample_size", -1, 64))
     else:
-        sample_size = int(check_cmd_arguments("--sample_size", 16, 16))
+        sample_size = int(check_cmd_arguments("--sample_size", -1, 16))
 
     # Check if the first path is a file or a folder
-    if os.path.isfile(sys.argv[1]):
-        # Check if we have another file
-        if len(sys.argv) >= 3 and os.path.isfile(sys.argv[2]):
+    files = get_files()
+    if len(files) > 1:
+        for file in files:
+            print(file)
             if ngram > 1:
-                print("Cannot use --ngram > 1 when using multiple files")
-                exit(1)
-            perform_experiement(sys.argv[1:3], combine, average, sample_size,
-                                title, xlabel, ylabel,
-                                plot_labels, moving_averages, data_loc)
-        else:# Else we can proceed with one file
-            if ngram > 1:
-                perform_ngram_experiment(sys.argv[1:2], combine, average,
+                perform_ngram_experiment([file], combine, average,
                                          sample_size, ngram,
                                          plot_labels, moving_averages, data_loc)
             else:
-                perform_experiement(sys.argv[1:2], combine, average,
+                perform_experiement([file], combine, average,
+                                    sample_size, plot_labels, moving_averages,
+                                    data_loc)
+        else:# Else we can proceed with one file
+            if ngram > 1:
+                perform_ngram_experiment(files, combine, average,
+                                         sample_size, ngram,
+                                         plot_labels, moving_averages, data_loc)
+            else:
+                perform_experiement(files, combine, average,
                                     sample_size, plot_labels, moving_averages,
                                     data_loc)
 

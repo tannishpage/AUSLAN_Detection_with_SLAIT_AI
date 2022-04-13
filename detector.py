@@ -103,7 +103,7 @@ def calculate_entropy(string, sample_size, ap, bp, cp):
     entropies = []
     start = 0
     if sample_size == -1:
-        sample_size = len(string)
+        sample_size = len(string) - 1
     for i, end in enumerate(range(sample_size, N, sample_size)):
         sub_string = string[start:end+1]
         freq_dist = sorted_freq_dist(sub_string)

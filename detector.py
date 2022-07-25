@@ -93,25 +93,55 @@ def sorted_freq_dist(symbols):
     freq_dist = []
 
     for alphabet in alphabets:
-        freq_dist.append((alphabet, symbols.count(alphabet)/len(symbols)))
+        freq_dist.append((alphabet, symbols.count(alphabet)))
     # Sort based on second value, in descending order
     freq_dist.sort(key=lambda x: x[1], reverse=True)
     return freq_dist
 
-def calculate_entropy(string, sample_size, ap, bp, cp):
+def calculate_entropy(string, sample_size, ap, bp, cp, hand="combine"):
     N = len(string)
     entropies = []
     start = 0
+    count = 0
+    probs = {"A":[], "B":[], "C":[], "D":[], "E":[], "F":[], "G":[], "H":[]}
     if sample_size == -1:
         sample_size = len(string) - 1
     for i, end in enumerate(range(sample_size, N, sample_size)):
         sub_string = string[start:end+1]
         freq_dist = sorted_freq_dist(sub_string)
+
+        # Using Rank 1 for every sample, the rank changes for each sample
         most_freq = freq_dist[0][0] # Most frequent symbol
-        entropies.append(FastEntropy4(sub_string, len(sub_string), most_freq,
-                                        len(freq_dist), ap, bp, cp)[0])
+        entropy, prob_dist = FastEntropy4(sub_string, len(sub_string), most_freq,
+                                        len(freq_dist), ap, bp, cp)
+        entropies.append(entropy)
+
+        for i, freq in enumerate(freq_dist):
+            if probs.get(freq[0], None) == None:
+                probs[freq[0]] = [prob_dist[i]]
+            else:
+                probs[freq[0]].append(prob_dist[i])
+        count += 1
+        for s in probs.keys():
+            if len(probs[s]) < count:
+                probs[s].append(0.0)
+
         #print(i+1, string[start:end+1])
         start = end
+
+    #print(probs)
+    fig = plt.figure()
+    fig.set_size_inches((19.2, 10.8))
+    plt.title(hand)
+    for i, symbol in enumerate(probs.keys()):
+        plt.subplot(3, 3, i+1)
+        plt.plot(range(0, len(probs[symbol])), probs[symbol])
+        plt.ylim(0, 1)
+        plt.xlabel("Frame")
+        plt.ylabel("Probability")
+        plt.legend(symbol)
+    #plt.show()
+    fig.savefig(f"./{hand}_plot.png", dpi=100)
 
     return (range(sample_size, N, sample_size), entropies)
 
@@ -274,7 +304,7 @@ def compare_entropies(strings, sample_size,
 
 
 def compare_entropies_average(left, right, sample_size,
-                              labels, moving_averages, data_loc):
+                              labels, moving_averages, data_loc, file_name):
 
     ap = 0.0095
     bp = 4.0976
@@ -283,8 +313,8 @@ def compare_entropies_average(left, right, sample_size,
     if labels != None:
         seg_labels = create_segments(labels[0], sample_size)
     for l, r in zip(left, right):
-        x, y_l = calculate_entropy(l, sample_size, ap, bp, cp)
-        x, y_r = calculate_entropy(r, sample_size, ap, bp, cp)
+        x, y_l = calculate_entropy(l, sample_size, ap, bp, cp, f"{file_name} Left Hand")
+        x, y_r = calculate_entropy(r, sample_size, ap, bp, cp, f"{file_name} Right Hand")
         y_avg = calculate_average(y_l, y_r)
         data["Frame Number"] = x
         data["Left Entropy"] = y_l
@@ -405,7 +435,7 @@ def perform_experiement(files, combine, average, sample_size,
     else:
         if average:
             compare_entropies_average(left_symbols, right_symbols, sample_size,
-                                      labels, moving_averages, data_loc)
+                                      labels, moving_averages, data_loc, os.path.basename(files[0]).replace(".txt", ""))
         else:
             compare_entropies(left_symbols+right_symbols, sample_size,
                               labels, moving_averages, data_loc)
@@ -447,7 +477,7 @@ if __name__ == "__main__":
 
     # Check if the first path is a file or a folder
     files = get_files()
-    if len(files) > 1:
+    if len(files) >= 1:
         for file in files:
             print(file)
             if ngram > 1:

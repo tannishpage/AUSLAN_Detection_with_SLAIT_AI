@@ -286,6 +286,7 @@ def compare_entropies(strings, sample_size,
     bp = 4.0976
     cp = 3.9841
     data = dict()
+    #print(len(strings))
     if labels != None:
         seg_labels = create_segments(labels[0], sample_size)
     for i, string in enumerate(strings):
@@ -313,9 +314,11 @@ def compare_entropies_average(left, right, sample_size,
     if labels != None:
         seg_labels = create_segments(labels[0], sample_size)
     for l, r in zip(left, right):
-        x, y_l = calculate_entropy(l, sample_size, ap, bp, cp, f"{file_name} Left Hand")
-        x, y_r = calculate_entropy(r, sample_size, ap, bp, cp, f"{file_name} Right Hand")
+        maximum = min(len(l), len(r))
+        x, y_l = calculate_entropy(l[:maximum], sample_size, ap, bp, cp, f"{file_name} Left Hand")
+        x, y_r = calculate_entropy(r[:maximum], sample_size, ap, bp, cp, f"{file_name} Right Hand")
         y_avg = calculate_average(y_l, y_r)
+        print(len(x), len(y_l), len(y_r), len(y_avg))
         data["Frame Number"] = x
         data["Left Entropy"] = y_l
         data["Right Entropy"] = y_r
@@ -325,6 +328,7 @@ def compare_entropies_average(left, right, sample_size,
     if moving_averages != 0:
         entropies = [entropy if str(entropy) != 'nan' else 0.0 for entropy in y_avg]
         averages = exponential_moving_average(entropies, moving_averages)
+        print(len(averages))
         data["EMA"] = averages
 
     data_frame = pd.DataFrame(data)
@@ -434,6 +438,7 @@ def perform_experiement(files, combine, average, sample_size,
                           labels, moving_averages, data_loc)
     else:
         if average:
+            print(len(left_symbols) - len(right_symbols))
             compare_entropies_average(left_symbols, right_symbols, sample_size,
                                       labels, moving_averages, data_loc, os.path.basename(files[0]).replace(".txt", ""))
         else:
@@ -488,7 +493,7 @@ if __name__ == "__main__":
                 perform_experiement([file], combine, average,
                                     sample_size, plot_labels, moving_averages,
                                     data_loc)
-        else:# Else we can proceed with one file
+        """else:# Else we can proceed with one file
             if ngram > 1:
                 perform_ngram_experiment(files, combine, average,
                                          sample_size, ngram,
@@ -496,7 +501,7 @@ if __name__ == "__main__":
             else:
                 perform_experiement(files, combine, average,
                                     sample_size, plot_labels, moving_averages,
-                                    data_loc)
+                                    data_loc)"""
 
     else:
         print(f"Use --help or -h to see how to use this script")

@@ -130,18 +130,21 @@ def calculate_entropy(string, sample_size, ap, bp, cp, hand="combine"):
         start = end
 
     #print(probs)
-    fig = plt.figure()
-    fig.set_size_inches((19.2, 10.8))
-    plt.title(hand)
+    try:
+        os.mkdir(f"./{hand}_plots")
+    except FileExistsError:
+        print("Saving plots in existing folder")
     for i, symbol in enumerate(probs.keys()):
-        plt.subplot(3, 3, i+1)
+        fig = plt.figure()
+        fig.set_size_inches((19.2, 10.8))
+        plt.title(hand)
         plt.plot(range(0, len(probs[symbol])), probs[symbol])
         plt.ylim(0, 1)
         plt.xlabel("Frame")
         plt.ylabel("Probability")
         plt.legend(symbol)
-    #plt.show()
-    fig.savefig(f"./{hand}_plot.png", dpi=100)
+        #plt.show()
+        fig.savefig(os.path.join(f"./{hand}_plots", f"./{hand}_{symbol}_plot.png"), dpi=100)
 
     return (range(sample_size, N, sample_size), entropies)
 

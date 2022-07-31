@@ -207,7 +207,7 @@ if __name__ == "__main__":
         w = int(subplot[1])
         sub_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, h, w)
     elif seps != False:
-        seps_plotter_single_file(files, save, title, xlabel, ylabel, key_to_plot, hide, seps.split(":"))
+        seps_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, seps.split(":"))
     elif animate == True:
         animated_plotter(files, save, title, xlabel, ylabel, key_to_plot, sep_lr, hide)
     else:

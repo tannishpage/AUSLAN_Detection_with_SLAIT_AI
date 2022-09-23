@@ -56,6 +56,9 @@ def analyse_symbols_with_labels(hand, labels):
     average_non_sign_dist = get_average_dist(non_sign_freq_dist)
     return average_sign_dist, average_non_sign_dist
 
+def analyse_symbols(hand):
+    pass
+
 
 if __name__ == "__main__":
     USAGE = """Usage: python3 analyse_symbols.py <path_to_text_file> [options]

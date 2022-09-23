@@ -90,7 +90,7 @@ def seps_plotter(files, save, title, xlabel, ylabel, key_to_plot, hide, seps):
     plt.title(title)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
-    plt.legend(legend)
+    plt.legend(["Participant 32", "Saber", "Participant 3", "DeafGavin", "TAtkinson"])
     if save != False:
         fig.savefig(save, dpi=100)
     if not hide:

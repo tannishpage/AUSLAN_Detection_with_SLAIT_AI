@@ -116,7 +116,7 @@ def calculate_entropy(string, sample_size, ap, bp, cp, hand="combine"):
                                         len(freq_dist), ap, bp, cp)
         entropies.append(entropy)
 
-        for i, freq in enumerate(freq_dist):
+        """for i, freq in enumerate(freq_dist):
             if probs.get(freq[0], None) == None:
                 probs[freq[0]] = [prob_dist[i]]
             else:
@@ -124,7 +124,7 @@ def calculate_entropy(string, sample_size, ap, bp, cp, hand="combine"):
         count += 1
         for s in probs.keys():
             if len(probs[s]) < count:
-                probs[s].append(0.0)
+                probs[s].append(0.0)"""
 
         #print(i+1, string[start:end+1])
         start = end
@@ -347,8 +347,9 @@ def compare_entropies_ngram_average(left, right, sample_size,
     if labels != None:
         seg_labels = create_segments(labels, sample_size)
 
-    x, y_l = calculate_ngram_entropy(left, sample_size, ap, bp, cp)
-    x, y_r = calculate_ngram_entropy(right, sample_size, ap, bp, cp)
+    maximum = min(len(left), len(right))
+    x, y_l = calculate_ngram_entropy(left[:maximum], sample_size, ap, bp, cp)
+    x, y_r = calculate_ngram_entropy(right[:maximum], sample_size, ap, bp, cp)
 
     y_avg = calculate_average(y_l, y_r)
     data["Frame Number"] = x
@@ -396,7 +397,8 @@ def perform_ngram_experiment(files, combine, average, sample_size, ngram,
         data_loc = data_loc.format(files[0].replace(".csv", "_Entropy"))
     else:
         left_symbols, right_symbols, labels = get_values_from_file(files)
-        data_loc = data_loc.format(files[0].replace(".txt", "_Entropy"))
+        data_loc = data_loc.format(os.path.basename(files[0]).replace(".txt", "_Entropy"))
+        print("DATA_LOC:", data_loc)
     left_symbols = "".join(left_symbols[0])
     right_symbols = "".join(right_symbols[0])
 
@@ -430,7 +432,9 @@ def perform_experiement(files, combine, average, sample_size,
         data_loc = data_loc.format(files[0].replace(".csv", "_Entropy"))
     else:
         left_symbols, right_symbols, labels = get_values_from_file(files)
-        data_loc = data_loc.format(files[0].replace(".txt", "_Entropy"))
+        data_loc = data_loc.format(os.path.basename(files[0]).replace(".txt", "_Entropy"))
+        print("DATA_LOC:", data_loc)
+
     if not plot_labels:
         labels = None
     if combine:
